@@ -72,19 +72,19 @@ struct RwStream
 
 
 
-inline auto RwStreamClose = GetMainLibrarySymbol<RwBool(*)(RwStream *stream, void *pData)>("_Z13RwStreamCloseP8RwStreamPv");
-inline auto RwStreamFindChunk = GetMainLibrarySymbol<RwBool(*)(RwStream *stream, RwUInt32 type, RwUInt32 *lengthOut, RwUInt32 *versionOut)>("_Z17RwStreamFindChunkP8RwStreamjPjS1_");
-inline auto RwStreamOpen = GetMainLibrarySymbol<RwStream*(*)(RwStreamType type, RwStreamAccessType accessType, const void *pData)>("_Z12RwStreamOpen12RwStreamType18RwStreamAccessTypePKv");
-inline auto RwStreamRead = GetMainLibrarySymbol<RwUInt32(*)(RwStream *stream, void *buffer, RwUInt32 length)>("_Z12RwStreamReadP8RwStreamPvj");
-inline auto RwStreamReadChunkHeaderInfo = GetMainLibrarySymbol<RwStream*(*)(RwStream *stream, RwChunkHeaderInfo *chunkHeaderInfo)>("_Z27RwStreamReadChunkHeaderInfoP8RwStreamP17RwChunkHeaderInfo");
-inline auto RwStreamReadInt16 = GetMainLibrarySymbol<RwStream*(*)(RwStream *stream, RwInt16 *ints, RwUInt32 numBytes)>("_Z17RwStreamReadInt16P8RwStreamPsj");
-inline auto RwStreamReadInt32 = GetMainLibrarySymbol<RwStream*(*)(RwStream *stream, RwInt32 *ints, RwUInt32 numBytes)>("_Z17RwStreamReadInt32P8RwStreamPij");
-inline auto RwStreamReadReal = GetMainLibrarySymbol<RwStream*(*)(RwStream *stream, RwReal *reals, RwUInt32 numBytes)>("_Z16RwStreamReadRealP8RwStreamPfj");
-inline auto RwStreamSetFreeListCreateParams = GetMainLibrarySymbol<void(*)(RwInt32 blockSize, RwInt32 numBlocksToPrealloc)>("_Z31RwStreamSetFreeListCreateParamsii");
-inline auto RwStreamSkip = GetMainLibrarySymbol<void(*)(RwStream *stream, RwUInt32 offset)>("_Z12RwStreamSkipP8RwStreamj");
-inline auto RwStreamWrite = GetMainLibrarySymbol<RwStream*(*)(RwStream *stream, const void *buffer, RwUInt32 length)>("_Z13RwStreamWriteP8RwStreamPKvj");
-inline auto RwStreamWriteInt16 = GetMainLibrarySymbol<RwStream*(*)(RwStream *stream, const RwInt16 *ints, RwUInt32 numBytes)>("_Z18RwStreamWriteInt16P8RwStreamPKsj");
-inline auto RwStreamWriteInt32 = GetMainLibrarySymbol<RwStream*(*)(RwStream *stream, const RwInt32 *ints, RwUInt32 numBytes)>("_Z18RwStreamWriteInt32P8RwStreamPKij");
-inline auto RwStreamWriteReal = GetMainLibrarySymbol<RwStream*(*)(RwStream *stream, const RwReal *reals, RwUInt32 numBytes)>("_Z17RwStreamWriteRealP8RwStreamPKfj");
+DECL_FASTCALL_SIMPLE_GLO(RwStreamClose, _Z13RwStreamCloseP8RwStreamPv, RwBool, RwStream *stream, void *pData);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamFindChunk, _Z17RwStreamFindChunkP8RwStreamjPjS1_, RwBool, RwStream *stream, RwUInt32 type, RwUInt32 *lengthOut, RwUInt32 *versionOut);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamOpen, _Z12RwStreamOpen12RwStreamType18RwStreamAccessTypePKv, RwStream*, RwStreamType type, RwStreamAccessType accessType, const void *pData);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamRead, _Z12RwStreamReadP8RwStreamPvj, RwUInt32, RwStream *stream, void *buffer, RwUInt32 length);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamReadChunkHeaderInfo, _Z27RwStreamReadChunkHeaderInfoP8RwStreamP17RwChunkHeaderInfo, RwStream*, RwStream *stream, RwChunkHeaderInfo *chunkHeaderInfo);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamReadInt16, _Z17RwStreamReadInt16P8RwStreamPsj, RwStream*, RwStream *stream, RwInt16 *ints, RwUInt32 numBytes);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamReadInt32, _Z17RwStreamReadInt32P8RwStreamPij, RwStream*, RwStream *stream, RwInt32 *ints, RwUInt32 numBytes);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamReadReal, _Z16RwStreamReadRealP8RwStreamPfj, RwStream*, RwStream *stream, RwReal *reals, RwUInt32 numBytes);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamSetFreeListCreateParams, _Z31RwStreamSetFreeListCreateParamsii, void, RwInt32 blockSize, RwInt32 numBlocksToPrealloc);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamSkip, _Z12RwStreamSkipP8RwStreamj, void, RwStream *stream, RwUInt32 offset);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamWrite, _Z13RwStreamWriteP8RwStreamPKvj, RwStream*, RwStream *stream, const void *buffer, RwUInt32 length);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamWriteInt16, _Z18RwStreamWriteInt16P8RwStreamPKsj, RwStream*, RwStream *stream, const RwInt16 *ints, RwUInt32 numBytes);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamWriteInt32, _Z18RwStreamWriteInt32P8RwStreamPKij, RwStream*, RwStream *stream, const RwInt32 *ints, RwUInt32 numBytes);
+DECL_FASTCALL_SIMPLE_GLO(RwStreamWriteReal, _Z17RwStreamWriteRealP8RwStreamPKfj, RwStream*, RwStream *stream, const RwReal *reals, RwUInt32 numBytes);
 
 #endif // __AML_PSDK_RWSTREAM_H

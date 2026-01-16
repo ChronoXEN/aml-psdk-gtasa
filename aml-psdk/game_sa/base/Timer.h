@@ -5,20 +5,22 @@
 
 struct CTimer
 {
-    static inline auto Initialise = GetMainLibrarySymbol<void(*)()>("_ZN6CTimer10InitialiseEv");
-    static inline auto Shutdown = GetMainLibrarySymbol<void(*)()>("_ZN6CTimer8ShutdownEv");
-    static inline auto Update = GetMainLibrarySymbol<void(*)()>("_ZN6CTimer6UpdateEv");
-    static inline auto UpdateVariables = GetMainLibrarySymbol<void(*)(float)>("_ZN6CTimer15UpdateVariablesEf");
-    static inline auto Suspend = GetMainLibrarySymbol<void(*)()>("_ZN6CTimer7SuspendEv");
-    static inline auto Resume = GetMainLibrarySymbol<void(*)()>("_ZN6CTimer6ResumeEv");
-    static inline auto GetCyclesPerMillisecond = GetMainLibrarySymbol<u32(*)()>("_ZN6CTimer23GetCyclesPerMillisecondEv");
-    static inline auto GetCyclesPerFrame = GetMainLibrarySymbol<u32(*)()>("_ZN6CTimer17GetCyclesPerFrameEv");
-    static inline auto GetCurrentTimeInCycles = GetMainLibrarySymbol<u32(*)()>("_ZN6CTimer22GetCurrentTimeInCyclesEv");
-    static inline auto Stop = GetMainLibrarySymbol<void(*)()>("_ZN6CTimer4StopEv");
-    static inline auto GetIsSlowMotionActive = GetMainLibrarySymbol<bool(*)()>("_ZN6CTimer21GetIsSlowMotionActiveEv");
-    static inline auto StartUserPause = GetMainLibrarySymbol<void(*)()>("_ZN6CTimer14StartUserPauseEv");
-    static inline auto EndUserPause = GetMainLibrarySymbol<void(*)()>("_ZN6CTimer12EndUserPauseEv");
+    // Functions
+    DECL_FASTCALL_SIMPLE(Initialise, _ZN6CTimer10InitialiseEv, void);
+    DECL_FASTCALL_SIMPLE(Shutdown, _ZN6CTimer8ShutdownEv, void);
+    DECL_FASTCALL_SIMPLE(Update, _ZN6CTimer6UpdateEv, void);
+    DECL_FASTCALL_SIMPLE(UpdateVariables, _ZN6CTimer15UpdateVariablesEf, void);
+    DECL_FASTCALL_SIMPLE(Suspend, _ZN6CTimer7SuspendEv, void);
+    DECL_FASTCALL_SIMPLE(Resume, _ZN6CTimer6ResumeEv, void);
+    DECL_FASTCALL_SIMPLE(GetCyclesPerMillisecond, _ZN6CTimer23GetCyclesPerMillisecondEv, u32);
+    DECL_FASTCALL_SIMPLE(GetCyclesPerFrame, _ZN6CTimer17GetCyclesPerFrameEv, u32);
+    DECL_FASTCALL_SIMPLE(GetCurrentTimeInCycles, _ZN6CTimer22GetCurrentTimeInCyclesEv, u32);
+    DECL_FASTCALL_SIMPLE(Stop, _ZN6CTimer4StopEv, void);
+    DECL_FASTCALL_SIMPLE(GetIsSlowMotionActive, _ZN6CTimer21GetIsSlowMotionActiveEv, bool);
+    DECL_FASTCALL_SIMPLE(StartUserPause, _ZN6CTimer14StartUserPauseEv, void);
+    DECL_FASTCALL_SIMPLE(EndUserPause, _ZN6CTimer12EndUserPauseEv, void);
 
+    // STATIC values
     DECL_VALUE_PLT_U32(m_snTimeInMilliseconds, BYBIT(0x676FFC, 0x84C030));
     DECL_VALUE_PLT_U32(m_snTimeInMillisecondsNonClipped, BYBIT(0x679DBC, 0x851B90));
     DECL_VALUE_PLT_U32(m_snTimeInMillisecondsPauseMode, BYBIT(0x677A2C, 0x84D480));
@@ -34,12 +36,12 @@ struct CTimer
     DECL_VALUE_PLT_FLT(ms_fOldTimeStep, BYBIT(0x676C08, 0x84B858));
     DECL_VALUE_PLT_FLT(game_FPS, BYBIT(0x67767C, 0x84CD28));
     DECL_VALUE_PLT_U32(m_FrameCounter, BYBIT(0x678930, 0x84F280));
-
     DECL_VALUE_PLT_BOOL(m_UserPause, BYBIT(0x6776B0, 0x84CD90));
     DECL_VALUE_PLT_BOOL(m_CodePause, BYBIT(0x6794C4, 0x8509A0));
     DECL_VALUE_PLT_BOOL(bSlowMotionActive, BYBIT(0x6786A0, 0x84ED68));
     DECL_VALUE_PLT_BOOL(bSkipProcessThisFrame, BYBIT(0x679250, 0x8504B8));
 
+    // Helper functions
     inline u32 GetTimeMS()
     {
         return m_snTimeInMilliseconds;

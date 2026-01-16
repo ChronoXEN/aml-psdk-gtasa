@@ -57,26 +57,26 @@ struct RQMatrix
     bool dirty; 
 };
 
-inline auto RwMatrixChunkInfoRead = GetMainLibrarySymbol<RwMatrixChunkInfo*(*)(RwStream *stream, RwMatrixChunkInfo *matrixChunkInfo, RwInt32 *bytesRead)>("_Z21RwMatrixChunkInfoReadP8RwStreamP14rwStreamMatrixPi");
-inline auto RwMatrixCreate = GetMainLibrarySymbol<RwMatrix*(*)()>("_Z14RwMatrixCreatev");
-inline auto RwMatrixDestroy = GetMainLibrarySymbol<RwBool(*)(RwMatrix* matrix)>("_Z15RwMatrixDestroyP11RwMatrixTag");
-inline auto RwMatrixInvert = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix* dst, const RwMatrix* src)>("_Z14RwMatrixInvertP11RwMatrixTagPKS_");
-inline auto RwMatrixMultiply = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *dst, const RwMatrix *src1, const RwMatrix *src2)>("_Z16RwMatrixMultiplyP11RwMatrixTagPKS_S2_");
-inline auto RwMatrixOptimize = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *matrix, const RwMatrixTolerance *tolerance)>("_Z16RwMatrixOptimizeP11RwMatrixTagPK17RwMatrixTolerance");
-inline auto RwMatrixOrthoNormalize = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *dst, const RwMatrix *src)>("_Z22RwMatrixOrthoNormalizeP11RwMatrixTagPKS_");
-inline auto RwMatrixQueryRotate = GetMainLibrarySymbol<RwMatrix*(*)(const RwMatrix *matrix, RwV3d *unitAxis, RwReal *angle, RwV3d *center)>("_Z19RwMatrixQueryRotatePK11RwMatrixTagP5RwV3dPfS3_");
-inline auto RwMatrixRotate = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *matrix, const RwV3d *axis, RwReal angle, RwOpCombineType combineOp)>("_Z14RwMatrixRotateP11RwMatrixTagPK5RwV3df15RwOpCombineType");
-inline auto RwMatrixRotateOneMinusCosineSine = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *matrix, const RwV3d *unitAxis, RwReal oneMinusCosine, RwReal sine, RwOpCombineType combineOp)>("_Z32RwMatrixRotateOneMinusCosineSineP11RwMatrixTagPK5RwV3dff15RwOpCombineType");
-inline auto RwMatrixScale = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *matrix, const RwV3d *scale, RwOpCombineType combineOp)>("_Z13RwMatrixScaleP11RwMatrixTagPK5RwV3d15RwOpCombineType");
-inline auto RwMatrixSetFreeListCreateParams = GetMainLibrarySymbol<RwMatrix*(*)(RwInt32 blockSize, RwInt32 numBlocksToPrealloc)>("_Z31RwMatrixSetFreeListCreateParamsii");
-inline auto RwMatrixStreamGetSize = GetMainLibrarySymbol<RwMatrix*(*)(const RwMatrix *matrix)>("_Z21RwMatrixStreamGetSizePK11RwMatrixTag");
-inline auto RwMatrixStreamRead = GetMainLibrarySymbol<RwMatrix*(*)(RwStream *stream, RwMatrix *matrix)>("_Z18RwMatrixStreamReadP8RwStreamP11RwMatrixTag");
-inline auto RwMatrixStreamWrite = GetMainLibrarySymbol<RwMatrix*(*)(const RwMatrix *matrix, RwStream *stream)>("_Z19RwMatrixStreamWritePK11RwMatrixTagP8RwStream");
-inline auto RwMatrixTransform = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *matrix, const RwMatrix *transform, RwOpCombineType combineOp)>("_Z17RwMatrixTransformP11RwMatrixTagPKS_15RwOpCombineType");
-inline auto RwMatrixTranslate = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *matrix, const RwV3d *translation, RwOpCombineType combineOp)>("_Z17RwMatrixTranslateP11RwMatrixTagPK5RwV3d15RwOpCombineType");
-inline auto RwMatrixUpdate = GetMainLibrarySymbol<RwMatrix*(*)(RwMatrix *matrix)>("_Z14RwMatrixUpdateP11RwMatrixTag");
-inline auto TestMatrix = GetMainLibrarySymbol<void(*)(RwMatrix *pTempMatrix)>("_Z10TestMatrixP11RwMatrixTag");
-inline auto RwEngineGetMatrixTolerances = GetMainLibrarySymbol<RwBool(*)(RwMatrixTolerance *const tolerance)>("_Z27RwEngineGetMatrixTolerancesP17RwMatrixTolerance");
-inline auto RwEngineSetMatrixTolerances = GetMainLibrarySymbol<RwBool(*)(const RwMatrixTolerance *const tolerance)>("_Z27RwEngineSetMatrixTolerancesPK17RwMatrixTolerance");
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixChunkInfoRead, _Z21RwMatrixChunkInfoReadP8RwStreamP14rwStreamMatrixPi, RwMatrixChunkInfo*, RwStream *stream, RwMatrixChunkInfo *matrixChunkInfo, RwInt32 *bytesRead);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixCreate, _Z14RwMatrixCreatev, RwMatrix*);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixDestroy, _Z15RwMatrixDestroyP11RwMatrixTag, RwBool, RwMatrix* matrix);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixInvert, _Z14RwMatrixInvertP11RwMatrixTagPKS_, RwMatrix*, RwMatrix* dst, const RwMatrix* src);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixMultiply, _Z16RwMatrixMultiplyP11RwMatrixTagPKS_S2_, RwMatrix*, RwMatrix *dst, const RwMatrix *src1, const RwMatrix *src2);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixOptimize, _Z16RwMatrixOptimizeP11RwMatrixTagPK17RwMatrixTolerance, RwMatrix*, RwMatrix *matrix, const RwMatrixTolerance *tolerance);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixOrthoNormalize, _Z22RwMatrixOrthoNormalizeP11RwMatrixTagPKS_, RwMatrix*, RwMatrix *dst, const RwMatrix *src);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixQueryRotate, _Z19RwMatrixQueryRotatePK11RwMatrixTagP5RwV3dPfS3_, RwMatrix*, const RwMatrix *matrix, RwV3d *unitAxis, RwReal *angle, RwV3d *center);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixRotate, _Z14RwMatrixRotateP11RwMatrixTagPK5RwV3df15RwOpCombineType, RwMatrix*, RwMatrix *matrix, const RwV3d *axis, RwReal angle, RwOpCombineType combineOp);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixRotateOneMinusCosineSine, _Z32RwMatrixRotateOneMinusCosineSineP11RwMatrixTagPK5RwV3dff15RwOpCombineType, RwMatrix*, RwMatrix *matrix, const RwV3d *unitAxis, RwReal oneMinusCosine, RwReal sine, RwOpCombineType combineOp);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixScale, _Z13RwMatrixScaleP11RwMatrixTagPK5RwV3d15RwOpCombineType, RwMatrix*, RwMatrix *matrix, const RwV3d *scale, RwOpCombineType combineOp);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixSetFreeListCreateParams, _Z31RwMatrixSetFreeListCreateParamsii, RwMatrix*, RwInt32 blockSize, RwInt32 numBlocksToPrealloc);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixStreamGetSize, _Z21RwMatrixStreamGetSizePK11RwMatrixTag, RwMatrix*, const RwMatrix *matrix);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixStreamRead, _Z18RwMatrixStreamReadP8RwStreamP11RwMatrixTag, RwMatrix*, RwStream *stream, RwMatrix *matrix);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixStreamWrite, _Z19RwMatrixStreamWritePK11RwMatrixTagP8RwStream, RwMatrix*, const RwMatrix *matrix, RwStream *stream);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixTransform, _Z17RwMatrixTransformP11RwMatrixTagPKS_15RwOpCombineType, RwMatrix*, RwMatrix *matrix, const RwMatrix *transform, RwOpCombineType combineOp);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixTranslate, _Z17RwMatrixTranslateP11RwMatrixTagPK5RwV3d15RwOpCombineType, RwMatrix*, RwMatrix *matrix, const RwV3d *translation, RwOpCombineType combineOp);
+DECL_FASTCALL_SIMPLE_GLO(RwMatrixUpdate, _Z14RwMatrixUpdateP11RwMatrixTag, RwMatrix*, RwMatrix *matrix);
+DECL_FASTCALL_SIMPLE_GLO(TestMatrix, _Z10TestMatrixP11RwMatrixTag, void, RwMatrix *pTempMatrix);
+DECL_FASTCALL_SIMPLE_GLO(RwEngineGetMatrixTolerances, _Z27RwEngineGetMatrixTolerancesP17RwMatrixTolerance, RwBool, RwMatrixTolerance *const tolerance);
+DECL_FASTCALL_SIMPLE_GLO(RwEngineSetMatrixTolerances, _Z27RwEngineSetMatrixTolerancesPK17RwMatrixTolerance, RwBool, const RwMatrixTolerance *const tolerance);
 
 #endif // __AML_PSDK_RWMATRIX_H

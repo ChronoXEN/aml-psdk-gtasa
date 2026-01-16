@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #define SQ(_v) (_v * _v)
+#define VA_ARGS(...) , ##__VA_ARGS__
 
 struct SimpleVTable
 {
@@ -23,6 +24,7 @@ struct SimpleVTable
 
 typedef int8_t i8;
 typedef uint8_t u8;
+typedef uint8_t b8;
 typedef int16_t i16;
 typedef uint16_t u16;
 typedef int32_t i32;
@@ -129,7 +131,7 @@ inline Type GetMainLibrarySymbol(const char* sym)
         static inline _type& Set(const _type& v) { Get() = v; return Get(); } \
     }; inline ValueProxy_##_name _name
 
-
+// Values
 
 #define DECL_VALUE_PLT_I32(_name, _addr) \
     DECL_VALUE_HEAD(i32, _name) \
@@ -162,5 +164,52 @@ inline Type GetMainLibrarySymbol(const char* sym)
         DECL_VALUE_RETURN_BASE(float) \
         DECL_VALUE_RETURN_BASE(int) \
     DECL_VALUE_TAIL(float, _name)
+    
+// Class
+
+#define DECL_CLASS(_clsName) \
+    struct _clsName { \
+        typedef _clsName ThisClass; \
+        typedef _clsName BaseClass;
+
+#define DECL_CLASS_VTABLE(_clsName) \
+    struct _clsName : SimpleVTable { \
+        typedef _clsName ThisClass; \
+        typedef _clsName BaseClass;
+
+#define DECL_CLASS_BASED(_clsName, _clsBaseName) \
+    struct _clsName : _clsBaseName { \
+        typedef _clsName ThisClass; \
+        typedef _clsBaseName BaseClass;
+
+#define DECL_CLASS_END() \
+    };
+// Class functions
+
+#define DECL_CTORCALL(_clsName, _sym) \
+    static inline auto FuncProxy_##_clsName = GetMainLibrarySymbol<void(*)(ThisClass*)>(#_sym); \
+    _clsName() { FuncProxy_##_clsName(this); }
+
+#define DECL_DTORCALL(_clsName, _sym) \
+    static inline auto FuncProxy_##_clsName = GetMainLibrarySymbol<void(*)(ThisClass*)>(#_sym); \
+    ~_clsName() { FuncProxy_##_clsName(this); }
+
+#define DECL_THISCALL_HEAD(_name, _sym, _ret, ...) \
+    static inline auto FuncProxy_##_name = GetMainLibrarySymbol<_ret(*)(ThisClass* VA_ARGS(__VA_ARGS__))>(#_sym); \
+    inline _ret _name(__VA_ARGS__) {
+
+#define DECL_THISCALL_TAIL(_name, ...) \
+        return FuncProxy_##_name(this VA_ARGS(__VA_ARGS__)); \
+    }
+
+#define DECL_THISCALL_SIMPLE(_name, _sym, _ret) \
+    DECL_THISCALL_HEAD(_name, _sym, _ret) \
+    DECL_THISCALL_TAIL(_name)
+
+#define DECL_FASTCALL_SIMPLE(_name, _sym, _ret, ...) \
+    static inline auto _name = GetMainLibrarySymbol<_ret(*)(__VA_ARGS__)>(#_sym)
+
+#define DECL_FASTCALL_SIMPLE_GLO(_name, _sym, _ret, ...) \
+    inline auto _name = GetMainLibrarySymbol<_ret(*)(__VA_ARGS__)>(#_sym)
 
 #endif // __AML_PSDK_BASE_H
