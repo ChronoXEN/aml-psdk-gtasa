@@ -43,7 +43,7 @@ DECL_CLASS_VTABLE(CPlaceable)
     DECL_THISCALL_HEAD(IsWithinArea, _ZNK10CPlaceable12IsWithinAreaEffff, b8, float x1, float y1, float x2, float y2)
     DECL_THISCALL_TAIL(IsWithinArea, x1, y1, x2, y2)
     
-    DECL_THISCALL_HEAD(IsWithinArea2, _ZNK10CPlaceable12IsWithinAreaEffffff, b8, float x1, float y1, float z1, float x2, float y2, float z2)
+    DECL_THISCALL_NAMED_HEAD(IsWithinArea2, IsWithinArea, _ZNK10CPlaceable12IsWithinAreaEffffff, b8, float x1, float y1, float z1, float x2, float y2, float z2)
     DECL_THISCALL_TAIL(IsWithinArea2, x1, y1, z1, x2, y2, z2)
 
     // Helper functions

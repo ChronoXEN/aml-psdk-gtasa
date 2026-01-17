@@ -198,6 +198,18 @@ inline Type GetMainLibrarySymbol(const char* sym)
     static inline auto FuncProxy_##_name = GetMainLibrarySymbol<_ret(*)(ThisClass* VA_ARGS(__VA_ARGS__))>(#_sym); \
     inline _ret _name(__VA_ARGS__) {
 
+#define DECL_THISCALL_NAMED_HEAD(_name, _alias, _sym, _ret, ...) \
+    static inline auto FuncProxy_##_name = GetMainLibrarySymbol<_ret(*)(ThisClass* VA_ARGS(__VA_ARGS__))>(#_sym); \
+    inline _ret _alias(__VA_ARGS__) {
+
+#define DECL_THISCALL_ADDR_HEAD(_name, _addr, _ret, ...) \
+    static inline auto FuncProxy_##_name = (_ret(*)(ThisClass* VA_ARGS(__VA_ARGS__)))(GetMainLibraryAddress() + _addr); \
+    inline _ret _name(__VA_ARGS__) {
+
+#define DECL_THISCALL_ADDR_NAMED_HEAD(_name, _alias, _addr, _ret, ...) \
+    static inline auto FuncProxy_##_name = (_ret(*)(ThisClass* VA_ARGS(__VA_ARGS__)))(GetMainLibraryAddress() + _addr); \
+    inline _ret _alias(__VA_ARGS__) {
+
 #define DECL_THISCALL_TAIL(_name, ...) \
         return FuncProxy_##_name(this VA_ARGS(__VA_ARGS__)); \
     }

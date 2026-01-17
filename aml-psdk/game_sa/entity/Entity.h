@@ -4,13 +4,13 @@
 #include "Placeable.h"
 #include <aml-psdk/gta_base/Rect.h>
 
-struct CRect;
 struct RwObject;
 struct RpClump;
 struct RpAtomic;
 struct CPhysical;
 struct CReference;
 struct CColModel;
+struct C2dEffect;
 
 enum eEntityType : u8
 {
@@ -103,7 +103,39 @@ DECL_CLASS_BASED(CEntity, CPlaceable)
     DECL_THISCALL_SIMPLE(ProcessLightsForEntity, _ZN7CEntity22ProcessLightsForEntityEv, void);
     DECL_THISCALL_SIMPLE(RemoveEscalatorsForEntity, _ZN7CEntity25RemoveEscalatorsForEntityEv, void);
     DECL_THISCALL_SIMPLE(IsEntityOccluded, _ZN7CEntity16IsEntityOccludedEv, bool);
-    // TODO:
+
+    DECL_THISCALL_HEAD(AttachToRwObject, _ZN7CEntity16AttachToRwObjectEP8RwObjectb, void, RwObject *pObj, bool bUpdateMatrix)
+    DECL_THISCALL_TAIL(AttachToRwObject, pObj, bUpdateMatrix)
+
+    DECL_THISCALL_NAMED_HEAD(GetBoundCentre2, GetBoundCentre, _ZNK7CEntity14GetBoundCentreER7CVector, void, CVector &centre)
+    DECL_THISCALL_TAIL(GetBoundCentre2, centre)
+
+    DECL_THISCALL_HEAD(GetIsTouching, _ZNK7CEntity13GetIsTouchingEPS_, bool, CEntity *pEntity)
+    DECL_THISCALL_TAIL(GetIsTouching, pEntity)
+
+    DECL_THISCALL_NAMED_HEAD(GetIsTouching2, GetIsTouching, _ZNK7CEntity13GetIsTouchingERK7CVectorf, bool, const CVector &centre, float radius)
+    DECL_THISCALL_TAIL(GetIsTouching2, centre, radius)
+
+    DECL_THISCALL_HEAD(LivesInThisNonOverlapSector, _ZN7CEntity27LivesInThisNonOverlapSectorEii, bool, i32 x, i32 y)
+    DECL_THISCALL_TAIL(LivesInThisNonOverlapSector, x, y)
+
+    DECL_THISCALL_HEAD(SetRwObjectAlpha, _ZN7CEntity16SetRwObjectAlphaEi, void, i32 nAlpha)
+    DECL_THISCALL_TAIL(SetRwObjectAlpha, nAlpha)
+
+    DECL_THISCALL_HEAD(FindTriggerPointCoors, _ZN7CEntity21FindTriggerPointCoorsEi, CVector, i32 ArgIndex)
+    DECL_THISCALL_TAIL(FindTriggerPointCoors, ArgIndex)
+
+    DECL_THISCALL_HEAD(CalculateBBProjection, _ZN7CEntity21CalculateBBProjectionEP7CVectorS1_S1_S1_, void, CVector *pPoint1, CVector *pPoint2, CVector *pPoint3, CVector *pPoint4)
+    DECL_THISCALL_TAIL(CalculateBBProjection, pPoint1, pPoint2, pPoint3, pPoint4)
+
+    DECL_THISCALL_HEAD(GetRandom2dEffect, _ZN7CEntity17GetRandom2dEffectEih, C2dEffect*, i32 effectType, b8 mustBeFree)
+    DECL_THISCALL_TAIL(GetRandom2dEffect, effectType, mustBeFree)
+
+    DECL_THISCALL_HEAD(RegisterReference, _ZN7CEntity17RegisterReferenceEPPS_, void, CEntity **ppAddress)
+    DECL_THISCALL_TAIL(RegisterReference, ppAddress)
+
+    DECL_THISCALL_HEAD(CleanUpOldReference, _ZN7CEntity19CleanUpOldReferenceEPPS_, void, CEntity **ppAddress)
+    DECL_THISCALL_TAIL(CleanUpOldReference, ppAddress)
 
     // Member values
     union
