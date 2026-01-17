@@ -167,18 +167,18 @@ inline Type GetMainLibrarySymbol(const char* sym)
     
 // Class
 
-#define DECL_CLASS(_clsName) \
-    struct _clsName { \
+#define DECL_CLASS(_clsName, ...) \
+    struct __VA_ARGS__ _clsName { \
         typedef _clsName ThisClass; \
         typedef _clsName BaseClass;
 
-#define DECL_CLASS_VTABLE(_clsName) \
-    struct _clsName : SimpleVTable { \
+#define DECL_CLASS_VTABLE(_clsName, ...) \
+    struct __VA_ARGS__ _clsName : SimpleVTable { \
         typedef _clsName ThisClass; \
         typedef _clsName BaseClass;
 
-#define DECL_CLASS_BASED(_clsName, _clsBaseName) \
-    struct _clsName : _clsBaseName { \
+#define DECL_CLASS_BASED(_clsName, _clsBaseName, ...) \
+    struct __VA_ARGS__ _clsName : _clsBaseName { \
         typedef _clsName ThisClass; \
         typedef _clsBaseName BaseClass;
 
@@ -211,5 +211,15 @@ inline Type GetMainLibrarySymbol(const char* sym)
 
 #define DECL_FASTCALL_SIMPLE_GLO(_name, _sym, _ret, ...) \
     inline auto _name = GetMainLibrarySymbol<_ret(*)(__VA_ARGS__)>(#_sym)
+
+#ifdef AML64
+    #define CHECKSIZE(_cls, _s32, _s64) static_assert(sizeof(_cls)==_s64, "Validating size of " #_cls " is failed! " #_cls "'s size is not " #_s64)
+    #define B64MACRO(...) __VA_ARGS__
+    #define B32MACRO(...)
+#else
+    #define CHECKSIZE(_cls, _s32, _s64) static_assert(sizeof(_cls)==_s32, "Validating size of " #_cls " is failed! " #_cls "'s size is not " #_s32)
+    #define B32MACRO(...) __VA_ARGS__
+    #define B64MACRO(...)
+#endif
 
 #endif // __AML_PSDK_BASE_H

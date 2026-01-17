@@ -18,6 +18,7 @@ DECL_CLASS(CSimpleTransform)
     CVector m_vPosn;
     float m_fHeading;
 DECL_CLASS_END()
+CHECKSIZE(CSimpleTransform, 0x10, 0x10);
 
 
 
@@ -86,5 +87,6 @@ DECL_CLASS_VTABLE(CPlaceable)
     CSimpleTransform m_placement;
     CMatrix *m_matrix;
 DECL_CLASS_END()
+CHECKSIZE(CPlaceable, 0x18, 0x20);
 
 #endif // __AML_PSDK_SAPLACEABLE_H

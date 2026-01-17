@@ -1,5 +1,5 @@
-#ifndef __AML_PSDK_SAVECTOR_H
-#define __AML_PSDK_SAVECTOR_H
+#ifndef __AML_PSDK_GTAVECTOR_H
+#define __AML_PSDK_GTAVECTOR_H
 
 #include <aml-psdk/sdk_base.h>
 
@@ -239,4 +239,4 @@ const CVector vectorAxisX(1, 0, 0);
 const CVector vectorAxisY(0, 1, 0);
 const CVector vectorAxisZ(0, 0, 1);
 
-#endif // __AML_PSDK_SAVECTOR_H
+#endif // __AML_PSDK_GTAVECTOR_H

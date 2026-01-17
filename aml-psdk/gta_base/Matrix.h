@@ -1,5 +1,5 @@
-#ifndef __AML_PSDK_SAMATRIX_H
-#define __AML_PSDK_SAMATRIX_H
+#ifndef __AML_PSDK_GTAMATRIX_H
+#define __AML_PSDK_GTAMATRIX_H
 
 #include "Vector.h"
 #include <aml-psdk/renderware/RwMatrix.h>
@@ -114,4 +114,4 @@ DECL_CLASS(CMatrix)
     bool      m_bOwnsAttachedMatrix;
 DECL_CLASS_END()
 
-#endif // __AML_PSDK_SAMATRIX_H
+#endif // __AML_PSDK_GTAMATRIX_H

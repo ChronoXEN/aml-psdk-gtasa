@@ -1,0 +1,184 @@
+#ifndef __AML_PSDK_SAENTITY_H
+#define __AML_PSDK_SAENTITY_H
+
+#include "Placeable.h"
+#include <aml-psdk/gta_base/Rect.h>
+
+struct CRect;
+struct RwObject;
+struct RpClump;
+struct RpAtomic;
+struct CPhysical;
+struct CReference;
+struct CColModel;
+
+enum eEntityType : u8
+{
+    ENTITY_TYPE_NOTHING = 0,
+    ENTITY_TYPE_BUILDING,
+    ENTITY_TYPE_VEHICLE,
+    ENTITY_TYPE_PED,
+    ENTITY_TYPE_OBJECT,
+    ENTITY_TYPE_DUMMY,
+    ENTITY_TYPE_NOTINPOOLS
+};
+
+enum eEntityStatus : u8
+{
+    STATUS_PLAYER = 0,
+    STATUS_PLAYER_PLAYBACKFROMBUFFER,
+    STATUS_SIMPLE,
+    STATUS_PHYSICS,
+    STATUS_ABANDONED,
+    STATUS_WRECKED,
+    STATUS_TRAIN_MOVING,
+    STATUS_TRAIN_NOT_MOVING,
+    STATUS_PLAYER_REMOTE,
+    STATUS_PLAYER_DISABLED,
+    STATUS_TRAILER,
+    STATUS_SIMPLE_TRAILER,
+    STATUS_GHOST,
+};
+
+DECL_CLASS_BASED(CEntity, CPlaceable)
+    // Construct/Deconstruct functions
+    DECL_CTORCALL(CEntity, _ZN7CEntityC2Ev);
+    //DECL_DTORCALL(CEntity, _ZN7CEntityD0Ev);
+
+    // Virtual functions
+    virtual int Add();
+    virtual int Add(CRect&);
+    virtual int Remove();
+    virtual void SetIsStatic(bool isStatic);
+    virtual void SetModelIndex(int modelIdx);
+    virtual void SetModelIndexNoCreate(int modelIdx);
+    virtual RwObject* CreateRwObject();
+    virtual void DeleteRwObject();
+    virtual CRect GetBoundRect();
+    virtual void ProcessControl();
+    virtual void ProcessCollision();
+    virtual void ProcessShift();
+    virtual bool TestCollision(bool applySpeed);
+    virtual void Teleport(CVector destination, bool resetRotation = false);
+    virtual void SpecialEntityPreCollisionStuff(CPhysical *pPhysical,bool bDoingShift,bool &bSkipTestEntirely,bool &bSkipCol,bool &bForceBuildingCol,bool &bForceSoftCol);
+    virtual uint8_t SpecialEntityCalcCollisionSteps(bool& bProcessCollisionBeforeSettingTimeStep, bool& bDoPreCheckAtHalfSpeed);
+    virtual void PreRender();                                                                                     
+    virtual void Render();                                                                                            
+    virtual bool SetupLighting();                                                                                
+    virtual void RemoveLighting(bool bRemove);                                                               
+    virtual void FlagToDestroyWhenNextProcessed();
+
+    // Member functions
+    DECL_THISCALL_SIMPLE(HasPreRenderEffects, _ZN7CEntity19HasPreRenderEffectsEv, bool);
+    DECL_THISCALL_SIMPLE(CreateEffects, _ZN7CEntity13CreateEffectsEv, void);
+    DECL_THISCALL_SIMPLE(DestroyEffects, _ZN7CEntity14DestroyEffectsEv, void);
+    //DECL_THISCALL_SIMPLE(CreateRwObject, _ZN7CEntity14CreateRwObjectEv, void); // virtual
+    DECL_THISCALL_SIMPLE(DetachFromRwObject, _ZN7CEntity18DetachFromRwObjectEv, void);
+    //DECL_THISCALL_SIMPLE(DeleteRwObject, _ZN7CEntity14DeleteRwObjectEv, void); // virtual
+    //DECL_THISCALL_SIMPLE(GetBoundRect, _ZNK7CEntity12GetBoundRectEv, CRect); // virtual
+    DECL_THISCALL_SIMPLE(GetBoundCentre, _ZNK7CEntity14GetBoundCentreEv, CVector);
+    DECL_THISCALL_SIMPLE(UpdateRwFrame, _ZN7CEntity13UpdateRwFrameEv, void);
+    DECL_THISCALL_SIMPLE(UpdateRpHAnim, _ZN7CEntity13UpdateRpHAnimEv, void);
+    DECL_THISCALL_SIMPLE(UpdateAnim, _ZN7CEntity10UpdateAnimEv, void);
+    DECL_THISCALL_SIMPLE(GetIsOnScreen, _ZN7CEntity13GetIsOnScreenEv, bool);
+    DECL_THISCALL_SIMPLE(DoesNotCollideWithFlyers, _ZN7CEntity24DoesNotCollideWithFlyersEv, bool);
+    //DECL_THISCALL_SIMPLE(PreRender, _ZN7CEntity9PreRenderEv, void); // virtual
+    DECL_THISCALL_SIMPLE(ModifyMatrixForTreeInWind, _ZN7CEntity25ModifyMatrixForTreeInWindEv, void);
+    DECL_THISCALL_SIMPLE(ModifyMatrixForCrane, _ZN7CEntity20ModifyMatrixForCraneEv, void);
+    DECL_THISCALL_SIMPLE(PreRenderForGlassWindow, _ZN7CEntity23PreRenderForGlassWindowEv, void);
+    DECL_THISCALL_SIMPLE(BuildWindSockMatrix, _ZN7CEntity19BuildWindSockMatrixEv, void);
+    DECL_THISCALL_SIMPLE(RenderEffects, _ZN7CEntity13RenderEffectsEv, void);
+    //DECL_THISCALL_SIMPLE(Render, _ZN7CEntity6RenderEv, void); // virtual
+    DECL_THISCALL_SIMPLE(IsVisible, _ZN7CEntity9IsVisibleEv, bool);
+    DECL_THISCALL_SIMPLE(GetIsBoundingBoxOnScreen, _ZN7CEntity24GetIsBoundingBoxOnScreenEv, bool);
+    //DECL_THISCALL_SIMPLE(Add, _ZN7CEntity3AddEv, void); // virtual
+    //DECL_THISCALL_SIMPLE(Remove, _ZN7CEntity6RemoveEv, void); // virtual
+    DECL_THISCALL_SIMPLE(GetDistanceFromCentreOfMassToBaseOfModel, _ZN7CEntity40GetDistanceFromCentreOfMassToBaseOfModelEv, float);
+    DECL_THISCALL_SIMPLE(GetColModel, _ZN7CEntity11GetColModelEv, CColModel*);
+    DECL_THISCALL_SIMPLE(SetupBigBuilding, _ZN7CEntity16SetupBigBuildingEv, void);
+    DECL_THISCALL_SIMPLE(ModifyMatrixForBannerInWind, _ZN7CEntity27ModifyMatrixForBannerInWindEv, void);
+    DECL_THISCALL_SIMPLE(PruneReferences, _ZN7CEntity15PruneReferencesEv, void);
+    DECL_THISCALL_SIMPLE(ResolveReferences, _ZN7CEntity17ResolveReferencesEv, void);
+    //DECL_THISCALL_SIMPLE(SetupLighting, _ZN7CEntity13SetupLightingEv, bool); // virtual
+    DECL_THISCALL_SIMPLE(ProcessLightsForEntity, _ZN7CEntity22ProcessLightsForEntityEv, void);
+    DECL_THISCALL_SIMPLE(RemoveEscalatorsForEntity, _ZN7CEntity25RemoveEscalatorsForEntityEv, void);
+    DECL_THISCALL_SIMPLE(IsEntityOccluded, _ZN7CEntity16IsEntityOccludedEv, bool);
+    // TODO:
+
+    // Member values
+    union
+    {
+        RwObject *m_pRwObject;
+        RpClump *m_pRwClump;
+        RpAtomic *m_pRwAtomic;
+    };
+    unsigned int bUsesCollision : 1;           // does entity use collision
+    unsigned int bCollisionProcessed : 1;  // has object been processed by a ProcessEntityCollision function
+    unsigned int bIsStatic : 1;                // is entity static
+    unsigned int bHasContacted : 1;            // has entity processed some contact forces
+    unsigned int bIsStuck : 1;             // is entity stuck
+    unsigned int bIsInSafePosition : 1;        // is entity in a collision free safe position
+    unsigned int bWasPostponed : 1;            // was entity control processing postponed
+    unsigned int bIsVisible : 1;               //is the entity visible
+ 
+    unsigned int bIsBIGBuilding : 1;           // Set if this entity is a big building
+    unsigned int bRenderDamaged : 1;           // use damaged LOD models for objects with applicable damage
+    unsigned int bStreamingDontDelete : 1; // Dont let the streaming remove this 
+    unsigned int bRemoveFromWorld : 1;     // remove this entity next time it should be processed
+    unsigned int bHasHitWall : 1;              // has collided with a building (changes subsequent collisions)
+    unsigned int bImBeingRendered : 1;     // don't delete me because I'm being rendered
+    unsigned int bDrawLast :1;             // draw object last
+    unsigned int bDistanceFade :1;         // Fade entity because it is far away
+ 
+    unsigned int bDontCastShadowsOn : 1;       // Dont cast shadows on this object
+    unsigned int bOffscreen : 1;               // offscreen flag. This can only be trusted when it is set to true
+    unsigned int bIsStaticWaitingForCollision : 1; // this is used by script created entities - they are static until the collision is loaded below them
+    unsigned int bDontStream : 1;              // tell the streaming not to stream me
+    unsigned int bUnderwater : 1;              // this object is underwater change drawing order
+    unsigned int bHasPreRenderEffects : 1; // Object has a prerender effects attached to it
+    unsigned int bIsTempBuilding : 1;          // whether or not the building is temporary (i.e. can be created and deleted more than once)
+    unsigned int bDontUpdateHierarchy : 1; // Don't update the aniamtion hierarchy this frame
+ 
+    unsigned int bHasRoadsignText : 1;     // entity is roadsign and has some 2deffect text stuff to be rendered
+    unsigned int bDisplayedSuperLowLOD : 1;
+    unsigned int bIsProcObject : 1;            // set object has been generate by procedural object generator
+    unsigned int bBackfaceCulled : 1;          // has backface culling on
+    unsigned int bLightObject : 1;         // light object with directional lights
+    unsigned int bUnimportantStream : 1;       // set that this object is unimportant, if streaming is having problems
+    unsigned int bTunnel : 1;          // Is this model part of a tunnel
+    unsigned int bTunnelTransition : 1;        // This model should be rendered from within and outside of the tunnel
+
+    B32MACRO(u32 CEntity_gap;) // Need a gap here. For some reason.
+    unsigned short m_nRandomSeed;
+    unsigned short m_nModelIndex;
+    B64MACRO(u32 CEntity_gap1;) // Need a gap here. For some reason.
+    CReference *m_pReferences;
+    void *m_pStreamingLink;
+    short m_nScanCode;
+    char m_nIplIndex;
+    union
+    {
+        unsigned char m_nInterior;
+        unsigned char m_nAreaCode;
+    };
+    B64MACRO(u32 CEntity_gap2;) // Need a gap here. For some reason.
+    union
+    {
+        int m_nLodIndex; // -1 - without LOD model
+        CEntity *m_pLod;
+    };
+    unsigned char m_nNumLodChildren;
+    unsigned char m_nNumLodChildrenRendered;
+    union
+    {
+        i8 m_nTypeStatus;
+        struct {
+            unsigned char m_nType : 3;
+            unsigned char m_nStatus : 5;
+        };
+    };
+DECL_CLASS_END()
+
+CHECKSIZE(CEntity, 0x3C, 0x60);
+
+#endif // __AML_PSDK_SAENTITY_H
