@@ -87,12 +87,16 @@ struct CAESound
 };
 CHECKSIZE(CAESound, 0x74, 0x80);
 
+
+
 DECL_CLASS_VTABLE(CAEAudioEntity)
     CEntity *m_pEntity;
     CAESound m_tempSound;
     virtual void UpdateParameters(CAESound *pSound, short PlayPosition);
 DECL_CLASS_END()
 CHECKSIZE(CAEAudioEntity, 0x7C, 0x90);
+
+
 
 DECL_CLASS_BASED(CAETwinLoopSoundEntity, CAEAudioEntity)
     short           m_nBankSlotId;
@@ -109,6 +113,8 @@ DECL_CLASS_BASED(CAETwinLoopSoundEntity, CAEAudioEntity)
     CAESound       *m_apSounds[2];
 DECL_CLASS_END()
 CHECKSIZE(CAETwinLoopSoundEntity, 0xA8, 0xC8);
+
+
 
 DECL_CLASS_BASED(CAEPedAudioEntity, CAEAudioEntity)
     bool m_bInitialised;
@@ -129,6 +135,8 @@ DECL_CLASS_BASED(CAEPedAudioEntity, CAEAudioEntity)
     float m_fCurrentShirtFlapVolume;
 DECL_CLASS_END()
 CHECKSIZE(CAEPedAudioEntity, 0x15C, 0x1A8);
+
+
 
 DECL_CLASS_BASED(CAEPedSpeechAudioEntity, CAEAudioEntity)
     CAESound* m_aSounds[5];
@@ -152,6 +160,8 @@ DECL_CLASS_BASED(CAEPedSpeechAudioEntity, CAEAudioEntity)
 DECL_CLASS_END()
 CHECKSIZE(CAEPedSpeechAudioEntity, 0x100, 0x130);
 
+
+
 DECL_CLASS_BASED(CAEWeaponAudioEntity, CAEAudioEntity)
     bool m_bPlayedMiniGunFireSound;
     bool m_bMiniGunFireActive;
@@ -168,10 +178,140 @@ DECL_CLASS_BASED(CAEWeaponAudioEntity, CAEAudioEntity)
 DECL_CLASS_END()
 CHECKSIZE(CAEWeaponAudioEntity, 0xA0, 0xB8);
 
+
+
 DECL_CLASS_BASED(CAEPedWeaponAudioEntity, CAEWeaponAudioEntity)
     bool m_bActive;
     CPed* m_pPed;
 DECL_CLASS_END()
 CHECKSIZE(CAEPedWeaponAudioEntity, 0xA8, 0xC8);
+
+
+
+enum eVehicleSoundType : char
+{
+    VEHICLE_SOUND_CAR = 0x0,
+    VEHICLE_SOUND_MOTORCYCLE = 0x1,
+    VEHICLE_SOUND_BICYCLE = 0x2,
+    VEHICLE_SOUND_BOAT = 0x3,
+    VEHICLE_SOUND_HELI = 0x4,
+    VEHICLE_SOUND_PLANE = 0x5,
+    VEHICLE_SOUND_NON_VEH = 0x6,
+    VEHICLE_SOUND_USED_BY_NONE_VEH = 0x7,
+    VEHICLE_SOUND_TRAIN = 0x8,
+    VEHICLE_SOUND_TRAILER = 0x9,
+    VEHICLE_SOUND_SPECIAL = 0xA,
+};
+
+enum eRadioType : char
+{
+    RADIO_CIVILIAN = 0x0,
+    RADIO_SPECIAL = 0x1,
+    RADIO_UNKNOWN = 0x2,
+    RADIO_EMERGENCY = 0x3,
+    RADIO_DISABLED = 0xFF,
+};
+
+enum eRadioID : char
+{
+    RADIO_PLAYBACK_FM=1,
+    RADIO_K_ROSE,
+    RADIO_K_DST,     
+    RADIO_BOUNCE_FM,
+    RADIO_SF_UR,
+    RADIO_LOS_SANTOS,
+    RADIO_RADIO_X,
+    RADIO_CSR_103_9,
+    RADIO_K_JAH_WEST,
+    RADIO_MASTER_SOUNDS_98_3,
+    RADIO_WCTR,
+    RADIO_USER_TRACKS,
+    RADIO_NONE
+};
+
+struct tVehicleAudioSettings
+{
+    eVehicleSoundType  m_nVehicleSoundType;
+    short m_nEngineOnSoundBankId;
+    short m_nEngineOffSoundBankId;
+    char  m_nBassSetting;   // m_nStereo
+    float m_fBassEq;
+    float m_fEnginePitch;
+    char  m_bHornTon;   // sfx id
+    float m_fHornHigh;
+    char  m_nDoorSound;
+    char m_nEngineUpgrade;
+    eRadioID m_nRadioID;
+    eRadioType m_nRadioType;
+    char vehTypeForAudio;
+    float m_fHornVolumeDelta;
+};
+
+struct tVehicleSound
+{
+    unsigned int  m_nIndex;
+    CAESound     *m_pSound;
+};
+
+DECL_CLASS_BASED(CAEVehicleAudioEntity, CAEAudioEntity)
+    short                   m_nStallCounter;
+    tVehicleAudioSettings   m_settings;
+    bool                    m_bEnabled;
+    bool                    m_bPlayerDriver;
+    bool                    m_bPlayerPassenger;
+    bool                    m_bVehicleRadioPaused;
+    bool                    m_bSoundsStopped;
+    char                    m_nEngineState;
+    char                    m_nAudioGear;
+    float                   m_CrzCount;
+    bool                    m_bInhibitAccForLowSpeed;
+    short                   m_nRainDropCounter;
+    short                   m_nStalledCounter;
+    unsigned int            m_nSwapStalledTime;
+    bool                    m_bSilentStalled;
+    bool                    m_bDisableHeliEngineSounds;
+    bool                    m_bHornOn;
+    bool                    m_bSirenOrAlarmPlaying;
+    bool                    m_bHornPlaying;
+    float                   m_fSirenVolume;
+    bool                    m_bModelWithSiren;
+    unsigned int            m_nBoatHitWaveLastPlayedTime;
+    unsigned int            m_nTimeToInhibitAcc;
+    unsigned int            m_nTimeToInhibitCrz;
+    float                   m_fGeneralVehicleSoundVolume;
+    short                   m_nEngineDecelerateSoundBankId;
+    short                   m_nEngineAccelerateSoundBankId;
+    short                   m_nEngineBankSlotId;
+    tVehicleSound           m_aEngineSounds[12];
+    unsigned int            m_TimeLastServiced;
+    short                   m_ACPlayPositionThisFrame;
+    short                   m_ACPlayPositionLastFrame;
+    short                   m_FramesAgoACLooped;
+    short                   m_ACPlayPercentWhenStopped;
+    unsigned int            m_TimeACStopped;
+    short                   m_ACPlayPositionWhenStopped;
+    short                   m_nSkidSoundType;
+    CAESound               *m_pSurfaceSound;
+    short                   m_nRoadNoiseSoundType;
+    CAESound               *m_pRoadNoiseSound;
+    short                   m_nFlatTyreSoundType;
+    CAESound               *m_pFlatTyreSound;
+    short                   m_nReverseGearSoundType;
+    CAESound               *m_pReverseGearSound;
+    short                   m_nHornSoundType;
+    CAESound               *m_pHornTonSound;
+    CAESound               *m_pSirenSound;
+    CAESound               *m_pPoliceSirenSound;
+    CAETwinLoopSoundEntity  m_skidSound;
+    float                   m_CurrentRotorFrequency;
+    float                   m_CurrentDummyEngineVolume;
+    float                   m_CurrenytDummyEngineFrequency;
+    float                   m_fMovingPartSmoothedSpeed;
+    float                   m_fFadeIn;
+    float                   m_fFadeOut;
+    bool                    m_bNitroSoundPresent;
+    float                   m_CurrentNitroRadio;
+DECL_CLASS_END()
+CHECKSIZE(CAEVehicleAudioEntity, 0x24C, 0x310);
 
 #endif // __AML_PSDK_SAAEAUDIOENTITY_H

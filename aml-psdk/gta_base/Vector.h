@@ -239,4 +239,36 @@ const CVector vectorAxisX(1, 0, 0);
 const CVector vectorAxisY(0, 1, 0);
 const CVector vectorAxisZ(0, 0, 1);
 
+struct CompressedVector
+{
+    CompressedVector() { Set(0, 0, 0); }
+    CompressedVector(short X, short Y, short Z) { Set(X, Y, Z); }
+    short x, y, z;
+    
+    inline void Set(short X, short Y, short Z)
+    {
+        x = X;
+        y = Y;
+        z = Z;
+    }
+    inline void Set(CVector const& vec, float resolution = 8.0f)
+    {
+        x = vec.x * resolution;
+        y = vec.y * resolution;
+        z = vec.z * resolution;
+    }
+    inline CVector Uncompress(float resolution)
+    {
+        return CVector((float)x / resolution, (float)y / resolution, (float)z / resolution);
+    }
+    inline CVector Uncompressed()
+    {
+        return Uncompress(8.0f);
+    }
+    inline void Uncompress(CVector& out)
+    {
+        out = Uncompressed();
+    }
+};
+
 #endif // __AML_PSDK_GTAVECTOR_H
