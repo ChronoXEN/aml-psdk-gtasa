@@ -186,6 +186,7 @@ inline Type GetMainLibrarySymbol(const char* sym)
 
 #define DECL_CLASS_END() \
     };
+    
 // Class functions
 
 #define DECL_CTORCALL_ARG_HEAD(_clsName, _sym, ...) \
@@ -204,8 +205,8 @@ inline Type GetMainLibrarySymbol(const char* sym)
     ~_clsName() { FuncProxy_dtor##_clsName(this); }
 
 #define DECL_NEWCALL(_clsName, _sym) \
-    static inline auto FuncProxy_opnew##_clsName = GetMainLibrarySymbol<void*(*)(size_t size)>(#_sym); \
-    void* operator new(size_t size) { return FuncProxy_opnew##_clsName(size); }
+    static inline auto FuncProxy_opnew##_clsName = GetMainLibrarySymbol<_clsName*(*)(size_t size)>(#_sym); \
+    inline static _clsName* Instantiate(size_t size) { return FuncProxy_opnew##_clsName(size); }
     
 #define DECL_DLCALL(_clsName, _sym) \
     static inline auto FuncProxy_opdel##_clsName = GetMainLibrarySymbol<void(*)(void* ptr)>(#_sym); \

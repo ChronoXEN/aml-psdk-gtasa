@@ -93,6 +93,15 @@ enum eCarDrivingStyle : char
     DRIVINGSTYLE_STOP_FOR_CARS_IGNORE_LIGHTS
 };
 
+enum eDoorState : unsigned char
+{
+    DOOR_NOTHING,
+    DOOR_HIT_MAX_END,
+    DOOR_HIT_MIN_END,
+    DOOR_POP_OPEN,
+    DOOR_SLAM_SHUT
+};
+
 struct CRideAnimData
 {
     unsigned int m_nAnimGroup;
@@ -102,6 +111,18 @@ struct CRideAnimData
     float        m_fAnimLeanFwd;
     float        m_fHandlebarsAngle;
     float        m_fAnimPercentageState;
+};
+
+struct CDoor
+{
+    float         m_fOpenAngle;
+    float         m_fClosedAngle;
+    short         m_nDirn;
+    unsigned char m_nAxis;
+    eDoorState m_nDoorState;
+    float         m_fAngle;
+    float         m_fPrevAngle;
+    float         m_fAngVel;
 };
 
 DECL_CLASS(CAutoPilot)
@@ -172,7 +193,9 @@ DECL_CLASS_END()
 
 DECL_CLASS_BASED(CVehicle, CPhysical)
     // Construct/Deconstruct functions
-    DECL_CTORCALL(CVehicle, _ZN8CVehicleC2Ev);
+    CVehicle(){}
+    DECL_CTORCALL_ARG_HEAD(CVehicle, _ZN8CVehicleC2Eh, u8 createdBy)
+    DECL_CTORCALL_ARG_TAIL(createdBy)
     DECL_DTORCALL(CVehicle, _ZN8CVehicleD2Ev);
     DECL_NEWCALL(CVehicle, BYBIT(_ZN8CVehiclenwEj, _ZN8CVehiclenwEm) );
     DECL_DLCALL(CVehicle, _ZN8CVehicledlEPv);
