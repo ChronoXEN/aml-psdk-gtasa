@@ -16,8 +16,17 @@ MYMOD(net.psdk.mymod.guid, AML PSDK Template, 1.0, Author)
 #include <aml-psdk/game_sa/engine/FileMgr.h>
 #include <aml-psdk/game_sa/engine/Game.h>
 #include <aml-psdk/game_sa/engine/GameLogic.h>
+#include <aml-psdk/game_sa/other/PlayerData.h>
+#include <aml-psdk/game_sa/ai/PedIntelligence.h>
+#include <aml-psdk/game_sa/ai/tasks/Task.h>
 
 void Test()
 {
     AudioEngine.m_pWeaponAudio = 0;
+
+    // Yes, it's not "new" and "delete" but i want to allow usage of virtual funcs. It's faster and way shorter code!
+    CTask* newTask = CTask::Instantiate();
+    CLASS_CONSTRUCT(CTask, newTask);
+    CLASS_DECONSTRUCT(CTask, newTask); // alternatively newTask->MyDestructor() from SimpleVTable or thing below (if we have it)
+    //newTask->DeInstantiate();
 }

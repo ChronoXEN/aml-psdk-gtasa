@@ -270,11 +270,11 @@ inline Type GetMainLibrarySymbol(const char* sym)
 
 #define DECL_NEWCALL(_clsName, _sym) \
     static inline auto FuncProxy_opnew##_clsName = GetMainLibrarySymbol<_clsName*(*)(size_t size)>(#_sym); \
-    inline static _clsName* Instantiate(size_t size) { return FuncProxy_opnew##_clsName(size); }
+    inline static _clsName* Instantiate(size_t size = sizeof(_clsName)) { return FuncProxy_opnew##_clsName(size); }
     
 #define DECL_DLCALL(_clsName, _sym) \
     static inline auto FuncProxy_opdel##_clsName = GetMainLibrarySymbol<void(*)(void* ptr)>(#_sym); \
-    void operator delete(void* ptr) { FuncProxy_opdel##_clsName(ptr); }
+    inline void DeInstantiate() { FuncProxy_opdel##_clsName(this); }
 
 #define DECL_THISCALL_HEAD(_name, _sym, _ret, ...) \
     static inline auto FuncProxy_##_name = GetMainLibrarySymbol<_ret(*)(ThisClass* VA_ARGS(__VA_ARGS__))>(#_sym); \
@@ -295,6 +295,12 @@ inline Type GetMainLibrarySymbol(const char* sym)
 #define DECL_THISCALL_TAIL(_name, ...) \
         return FuncProxy_##_name(this VA_ARGS(__VA_ARGS__)); \
     }
+
+#define CLASS_CONSTRUCT(_clsName, ...) \
+    _clsName::FuncProxy_ctor##_clsName(__VA_ARGS__)
+
+#define CLASS_DECONSTRUCT(_clsName, ...) \
+    _clsName::FuncProxy_dtor##_clsName(__VA_ARGS__)
 
 #define DECL_THISCALL_SIMPLE(_name, _sym, _ret) \
     DECL_THISCALL_HEAD(_name, _sym, _ret) \
