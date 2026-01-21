@@ -2,6 +2,7 @@
 #define __AML_PSDK_SAAEAUDIOENTITY_H
 
 #include <aml-psdk/game_sa/plugin.h>
+#include <aml-psdk/gta_base/Vector.h>
 
 struct CEntity;
 struct CAEAudioEntity;
@@ -34,8 +35,61 @@ enum eAudioPedType
     PED_TYPE_SPC = 5
 };
 
-struct CAESound
-{
+DECL_CLASS(CAESound)
+    // Construct/Deconstruct functions
+    CAESound(){}
+    DECL_CTORCALL_ARG_HEAD(CAESound, _ZN8CAESoundC2EssP14CAEAudioEntity7CVectorffffhtf, i16 BankSlotID, i16 SoundID, CAEAudioEntity *pAudioEntity,
+                                                                                        CVector Position, float Volume, float RollOffFactor, float RelativeFrequency,
+                                                                                        float Doppler, u8 FrameDelay, u16 Environment, float FrequencyVariance)
+    DECL_CTORCALL_ARG_TAIL(BankSlotID, SoundID, pAudioEntity, Position, Volume, RollOffFactor, RelativeFrequency, Doppler, FrameDelay, Environment, FrequencyVariance)
+    DECL_DTORCALL(CAESound, _ZN8CAESoundD2Ev);
+
+    // Member functions
+    DECL_THISCALL_SIMPLE(UnregisterWithPhysicalEntity, _ZN8CAESound28UnregisterWithPhysicalEntityEv, void);
+    DECL_THISCALL_SIMPLE(NewVPSLentry, _ZN8CAESound12NewVPSLentryEv, void);
+    DECL_THISCALL_SIMPLE(CalculateFrequency, _ZN8CAESound18CalculateFrequencyEv, void);
+    DECL_THISCALL_SIMPLE(GetLifespanTiedToPhysicalEntity, _ZN8CAESound31GetLifespanTiedToPhysicalEntityEv, u16);
+    DECL_THISCALL_SIMPLE(StopSound, _ZN8CAESound9StopSoundEv, void);
+    DECL_THISCALL_SIMPLE(GetRequestUpdates, _ZN8CAESound17GetRequestUpdatesEv, u16);
+    DECL_THISCALL_SIMPLE(UpdateFrequency, _ZN8CAESound15UpdateFrequencyEv, void);
+    DECL_THISCALL_SIMPLE(StopSoundAndForget, _ZN8CAESound18StopSoundAndForgetEv, void);
+    DECL_THISCALL_SIMPLE(GetUncancellable, _ZN8CAESound16GetUncancellableEv, u16);
+    DECL_THISCALL_SIMPLE(GetFrontEnd, _ZN8CAESound11GetFrontEndEv, u16);
+    DECL_THISCALL_SIMPLE(GetUnpausable, _ZN8CAESound13GetUnpausableEv, u16);
+    DECL_THISCALL_SIMPLE(GetPlayPhysically, _ZN8CAESound17GetPlayPhysicallyEv, u16);
+    DECL_THISCALL_SIMPLE(GetStartPercentage, _ZN8CAESound18GetStartPercentageEv, u16);
+    DECL_THISCALL_SIMPLE(GetMusicMastered, _ZN8CAESound16GetMusicMasteredEv, u16);
+    DECL_THISCALL_SIMPLE(GetUnduckable, _ZN8CAESound13GetUnduckableEv, u16);
+    DECL_THISCALL_SIMPLE(GetUncompressable, _ZN8CAESound17GetUncompressableEv, u16);
+    DECL_THISCALL_SIMPLE(GetRolledOff, _ZN8CAESound12GetRolledOffEv, u16);
+    DECL_THISCALL_SIMPLE(GetSmoothDucking, _ZN8CAESound16GetSmoothDuckingEv, u16);
+    DECL_THISCALL_SIMPLE(GetForcedFront, _ZN8CAESound14GetForcedFrontEv, u16);
+    DECL_THISCALL_SIMPLE(SoundHasFinished, _ZN8CAESound16SoundHasFinishedEv, void);
+    DECL_THISCALL_SIMPLE(CalculateVolume, _ZN8CAESound15CalculateVolumeEv, void);
+    DECL_THISCALL_SIMPLE(GetRelativePlaybackFrequencyWithDoppler, _ZN8CAESound39GetRelativePlaybackFrequencyWithDopplerEv, float);
+    DECL_THISCALL_SIMPLE(GetSlowMoFrequencyScalingFactor, _ZN8CAESound31GetSlowMoFrequencyScalingFactorEv, float);
+
+    DECL_THISCALL_HEAD(Initialise, _ZN8CAESound10InitialiseEssP14CAEAudioEntity7CVectorffffhtfs, void, i16 BankSlotID, i16 SoundID, CAEAudioEntity *pAudioEntity,
+                                                                                        CVector Position, float Volume, float RollOffFactor, float RelativeFrequency,
+                                                                                        float Doppler, u8 FrameDelay, u16 Environment, float FrequencyVariance, i16 PlayTime)
+    DECL_THISCALL_TAIL(Initialise, BankSlotID, SoundID, pAudioEntity, Position, Volume, RollOffFactor, RelativeFrequency, Doppler, FrameDelay, Environment, FrequencyVariance, PlayTime)
+
+    DECL_THISCALL_HEAD(UpdateParameters, _ZN8CAESound16UpdateParametersEs, void, i16 PlayTime)
+    DECL_THISCALL_TAIL(UpdateParameters, PlayTime)
+
+    DECL_THISCALL_HEAD(RegisterWithPhysicalEntity, _ZN8CAESound26RegisterWithPhysicalEntityEP7CEntity, void, CEntity *pPhysicalEntity)
+    DECL_THISCALL_TAIL(RegisterWithPhysicalEntity, pPhysicalEntity)
+
+    DECL_THISCALL_HEAD(SetIndividualEnvironment, _ZN8CAESound24SetIndividualEnvironmentEtt, void, u16 environment, u16 tf)
+    DECL_THISCALL_TAIL(SetIndividualEnvironment, environment, tf)
+
+    DECL_THISCALL_HEAD(UpdatePlayTime, _ZN8CAESound14UpdatePlayTimeEsss, void, i16 VirtualChannelSoundLength, i16 VirtualChannelSoundLoopStartTime, i16 TimeElapsed)
+    DECL_THISCALL_TAIL(UpdatePlayTime, VirtualChannelSoundLength, VirtualChannelSoundLoopStartTime, TimeElapsed)
+
+    DECL_THISCALL_HEAD(GetRelativePosition, _ZN8CAESound19GetRelativePositionEP7CVector, void, CVector *pRelativePosition)
+    DECL_THISCALL_TAIL(GetRelativePosition, pRelativePosition)
+
+    // Member values
     short                 m_nBankSlotId;
     short                 m_nSoundIdInSlot;
     CAEAudioEntity       *m_pBaseAudio;
@@ -84,7 +138,7 @@ struct CAESound
     short                 m_nPlayingState;
     float                 m_fSoundHeadRoom;
     short                 m_nSoundLength;
-};
+DECL_CLASS_END()
 CHECKSIZE(CAESound, 0x74, 0x80);
 
 

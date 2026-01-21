@@ -109,6 +109,10 @@ inline Type GetMainLibrarySymbol(const char* sym)
         static inline _type& Set(const _type& v) { Get() = v; return Get(); } \
     }; inline ValueProxy_##_name _name
 
+#define DECL_VALUE_OBJECT_BASE(_type) \
+        _type* operator->() { return &Get(); } \
+        _type& operator()() { return Get(); }
+
 // Values
 
 #define DECL_VALUE_PLT_I32(_name, _addr) \
@@ -142,6 +146,13 @@ inline Type GetMainLibrarySymbol(const char* sym)
         DECL_VALUE_RETURN_BASE(float) \
         DECL_VALUE_RETURN_BASE(int) \
     DECL_VALUE_TAIL(float, _name)
+
+#define DECL_OBJECT_PLT_GLOBAL(_type, _name, _addr) \
+    DECL_VALUE_HEAD(_type, _name) \
+        DECL_VALUE_PLT_BASE(_type, _name, _addr) \
+        DECL_VALUE_OBJECT_BASE(_type) \
+        DECL_VALUE_RETURN_BASE(_type&) \
+    DECL_VALUE_TAIL_GLOBAL(_type, _name)
     
 // Class functions
 
