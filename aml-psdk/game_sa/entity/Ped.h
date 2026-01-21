@@ -66,6 +66,7 @@ CHECKSIZE(CPedIK, 0x20, 0x28);
 
 DECL_CLASS_BASED(CPed, CPhysical)
     // Construct/Deconstruct functions
+    CPed(){}
     DECL_CTORCALL_ARG_HEAD(CPed, _ZN4CPedC2Ej, u32 pedType)
     DECL_CTORCALL_ARG_TAIL(pedType)
     DECL_DTORCALL(CPed, _ZN4CPedD2Ev);

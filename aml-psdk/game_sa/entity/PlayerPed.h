@@ -4,6 +4,13 @@
 #include "Ped.h"
 
 DECL_CLASS_BASED(CPlayerPed, CPed)
+    // Construct/Deconstruct functions
+    CPlayerPed(){}
+    DECL_CTORCALL_ARG_HEAD(CPlayerPed, _ZN10CPlayerPedC2Eib, i32 nPlayerInfoIndex, bool bForReplay)
+    DECL_CTORCALL_ARG_TAIL(nPlayerInfoIndex, bForReplay)
+    DECL_DTORCALL(CPlayerPed, _ZN10CPlayerPedD2Ev)
+
+    // Member values
     CPed *m_pPlayerTargettedPed;
     int m_iMouseLockOnRecruitTimer;
 DECL_CLASS_END()

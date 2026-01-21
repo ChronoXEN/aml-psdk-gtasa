@@ -9,3 +9,5 @@ MYMOD(net.psdk.mymod.guid, AML PSDK Template, 1.0, Author)
 #include <aml-psdk/game_sa/base/Timer.h>
 #include <aml-psdk/gta_base/Vector.h>
 #include <aml-psdk/game_sa/entity/PlayerPed.h>
+#include <aml-psdk/game_sa/entity/Automobile.h>
+#include <aml-psdk/game_sa/engine/RunningScript.h>
