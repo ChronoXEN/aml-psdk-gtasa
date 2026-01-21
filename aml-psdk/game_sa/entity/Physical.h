@@ -3,7 +3,7 @@
 
 #include "Entity.h"
 #include <aml-psdk/game_sa/base/Lists.h>
-#include <aml-psdk/gta_base/Quaternion.h>
+#include "../base/Quaternion.h"
 #include "../enum/WeaponType.h"
 
 struct CRealTimeShadow;

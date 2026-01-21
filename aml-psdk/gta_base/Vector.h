@@ -1,7 +1,7 @@
 #ifndef __AML_PSDK_GTAVECTOR_H
 #define __AML_PSDK_GTAVECTOR_H
 
-#include <aml-psdk/sdk_base.h>
+#include <aml-psdk/sdk_basetypes.h>
 
 struct CVector2D
 {

@@ -1,7 +1,7 @@
 #ifndef __AML_PSDK_SATIMER_H
 #define __AML_PSDK_SATIMER_H
 
-#include <aml-psdk/sdk_base.h>
+#include <aml-psdk/game_sa/plugin.h>
 
 struct CTimer
 {

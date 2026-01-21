@@ -1,4 +1,4 @@
-#include <aml-psdk/sdk_base.h>
+#include <mod/amlmod.h>
 #include <mod/logger.h>
 #include <mod/config.h>
 

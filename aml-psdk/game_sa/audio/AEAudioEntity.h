@@ -1,7 +1,7 @@
 #ifndef __AML_PSDK_SAAEAUDIOENTITY_H
 #define __AML_PSDK_SAAEAUDIOENTITY_H
 
-#include <aml-psdk/sdk_base.h>
+#include <aml-psdk/game_sa/plugin.h>
 
 struct CEntity;
 struct CAEAudioEntity;

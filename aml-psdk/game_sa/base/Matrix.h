@@ -1,7 +1,7 @@
 #ifndef __AML_PSDK_GTAMATRIX_H
 #define __AML_PSDK_GTAMATRIX_H
 
-#include "Vector.h"
+#include <aml-psdk/gta_base/Vector.h>
 #include <aml-psdk/renderware/RwMatrix.h>
 
 DECL_CLASS(CMatrix)
