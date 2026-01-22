@@ -19,6 +19,7 @@ MYMOD(net.psdk.mymod.guid, AML PSDK Template, 1.0, Author)
 #include <aml-psdk/game_sa/other/PlayerData.h>
 #include <aml-psdk/game_sa/ai/PedIntelligence.h>
 #include <aml-psdk/game_sa/ai/tasks/Task.h>
+#include <aml-psdk/game_sa/entity/Camera.h>
 
 void Test()
 {
