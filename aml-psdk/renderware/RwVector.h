@@ -1,6 +1,7 @@
 #ifndef __AML_PSDK_RWVECTOR_H
 #define __AML_PSDK_RWVECTOR_H
 
+#include <aml-psdk/game_sa/plugin.h>
 #include <aml-psdk/gta_base/Vector.h>
 
 #define RwV2d CVector2D

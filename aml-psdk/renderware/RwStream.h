@@ -1,6 +1,7 @@
 #ifndef __AML_PSDK_RWSTREAM_H
 #define __AML_PSDK_RWSTREAM_H
 
+#include <aml-psdk/game_sa/plugin.h>
 #include "RwVector.h"
 
 enum RwStreamType : RwInt32

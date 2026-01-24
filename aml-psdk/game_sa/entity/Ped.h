@@ -162,7 +162,7 @@ DECL_CLASS_BASED(CPed, CPhysical)
     ePedState                   m_ePedState;
     int                         m_nMoveState; // see eMoveState
     CStoredCollPoly             m_storedCollPoly;
-    float                       m_distTravelledSinceLastHeightCheck;
+    float                       m_fDistTravelledSinceLastHeightCheck;
 
     unsigned int bIsStanding : 1; // is ped standing on something
     unsigned int bWasStanding : 1; // was ped standing on something
@@ -344,7 +344,7 @@ DECL_CLASS_BASED(CPed, CPhysical)
     char                m_nFightingStyle; // see eFightingStyle
     char                m_nAllowedAttackMoves;
     CFire              *m_pFire;
-    float               FireDamageMultiplier;
+    float               m_fFireDamageMultiplier;
     CEntity            *m_pLookingAtEntity;
     float               m_fLookingDirection;
     int                 m_nWeaponModelId;
@@ -358,7 +358,7 @@ DECL_CLASS_BASED(CPed, CPhysical)
     float               m_wobbleSpeed;
     char                m_nLastWeaponDamage;
     CEntity            *m_pLastEntityDamage;
-    uint32_t            LastDamagedTime;
+    uint32_t            m_nLastDamagedTime;
     CVector             m_vecTurretOffset;
     short               m_nTurretPosnMode;
     float               m_fTurretAngleA;
@@ -368,7 +368,7 @@ DECL_CLASS_BASED(CPed, CPhysical)
     CEntryExit         *m_pEnex;
     float               m_fRemovalDistMultiplier;
     short               m_nSpecialModelIndex;
-    uint32_t            LastTalkSfx;
+    uint32_t            m_nLastTalkSfx;
 DECL_CLASS_END()
 CHECKSIZE(CPed, 0x7A4, 0x988);
 
