@@ -79,6 +79,38 @@ DECL_CLASS_BASED(CPed, CPhysical)
     virtual bool Save();
     virtual bool Load();
 
+    // Helper functions
+    inline float GetHealth()
+    {
+        return m_fHealth;
+    }
+    inline float GetMaxHealth()
+    {
+        return m_fMaxHealth;
+    }
+    inline bool IsMaxHealth()
+    {
+        return (GetHealth() >= GetMaxHealth());
+    }
+    inline void SetHealth(float hp)
+    {
+        m_fHealth = hp;
+    }
+    inline void AddHealth(float hp)
+    {
+        SetHealth(GetHealth() + hp);
+    }
+    inline void SetHealthSafe(float hp)
+    {
+        if(hp < 0.0f) m_fHealth = 0.0f;
+        else if(hp > GetMaxHealth()) m_fHealth = GetMaxHealth();
+        else m_fHealth = hp;
+    }
+    inline void AddHealthSafe(float hp)
+    {
+        SetHealthSafe(GetHealth() + hp);
+    }
+
     // Member functions
     DECL_THISCALL_SIMPLE(PedIsInvolvedInConversation, _ZN4CPed27PedIsInvolvedInConversationEv, bool);
     DECL_THISCALL_SIMPLE(PedCanPickUpPickUp, _ZN4CPed18PedCanPickUpPickUpEv, bool);

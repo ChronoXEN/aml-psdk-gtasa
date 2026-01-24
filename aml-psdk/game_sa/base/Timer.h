@@ -50,6 +50,10 @@ struct CTimer
     {
         return m_snTimeInMilliseconds;
     }
+    static inline bool IsTimePassed(u32 time)
+    {
+        return (time < GetTimeInMS());
+    }
     static inline float GetTimeScale()
     {
         return ms_fTimeScale;

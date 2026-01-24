@@ -21,6 +21,8 @@ MYMOD(net.psdk.mymod.guid, AML PSDK Template, 1.0, Author)
 #include <aml-psdk/game_sa/ai/tasks/Task.h>
 #include <aml-psdk/game_sa/entity/Camera.h>
 
+#include <aml-psdk/game_sa/Events.h>
+
 DECL_HOOKv(CCamera__Process, CCamera* self)
 {
     CCamera__Process(self);
