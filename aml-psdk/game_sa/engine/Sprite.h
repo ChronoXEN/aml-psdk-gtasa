@@ -56,6 +56,17 @@ DECL_CLASS(CSprite)
     {
         Set4Vertices2D2(maVertices, x1, y1, x2, y2, x3, y3, x4, y4, TopLeftrgba, TopRightrgba, BottomLeftrgba, BottomRightrgba);
     }
+
+    // STATIC values
+    DECL_VALUE_PLT_FLT(m_f2DNearScreenZ, BYBIT(0x678688, 0x84ED38));
+    DECL_VALUE_PLT_FLT(m_f2DFarScreenZ, BYBIT(0x6799B8, 0x851388));
+    DECL_VALUE_PLT_FLT(m_fRecipNearClipPlane, BYBIT(0x678000, 0x84E020));
+    DECL_VALUE_PLT_I32(m_bFlushSpriteBufferSwitchZTest, BYBIT(0x679538, 0x850A80));
 DECL_CLASS_END()
+
+#define m_f2DNearScreenZ m_f2DNearScreenZ()
+#define m_f2DFarScreenZ m_f2DFarScreenZ()
+#define m_fRecipNearClipPlane m_fRecipNearClipPlane()
+#define m_bFlushSpriteBufferSwitchZTest m_bFlushSpriteBufferSwitchZTest()
 
 #endif // __AML_PSDK_SASPRITE_H

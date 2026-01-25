@@ -127,10 +127,23 @@ DECL_CLASS(CSprite2d)
     DECL_THISCALL_NAMED_HEAD(Draw4, Draw, _ZN9CSprite2d4DrawEffffffffRK5CRGBA, void, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, CRGBA const &rgba)
     DECL_THISCALL_TAIL(Draw4, x1, y1, x2, y2, x3, y3, x4, y4, rgba)
 
+    // STATIC values
+    DECL_OBJECT_PLT(RwIm2DVertex*, maVertices, BYBIT(0x679E70, 0x851CF0));
+    DECL_VALUE_PLT_FLT(RecipNearClip, BYBIT(0x6766B8, 0x84ADC8));
+    DECL_VALUE_PLT_FLT(NearScreenZ, BYBIT(0x675F98, 0x849FA0));
+    DECL_VALUE_PLT_I32(nextBufferVertex, BYBIT(0x678880, 0x84F120));
+    DECL_VALUE_PLT_I32(nextBufferIndex, BYBIT(0x679E6C, 0x851CE8));
+
     // Member values
     RwTexture* m_pTexture;
 DECL_CLASS_END()
 
 DECL_FASTCALL_SIMPLE_GLO(CalcScreenCoors, _Z15CalcScreenCoorsRK7CVectorPS_, bool, CVector const& In, CVector* pResult);
+
+//#define maVertices maVertices()
+#define RecipNearClip RecipNearClip()
+#define NearScreenZ NearScreenZ()
+#define nextBufferVertex nextBufferVertex()
+#define nextBufferIndex nextBufferIndex()
 
 #endif // __AML_PSDK_SASPRITE2D_H
