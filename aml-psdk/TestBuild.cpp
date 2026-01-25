@@ -25,6 +25,8 @@ MYMOD(net.psdk.mymod.guid, AML PSDK Template, 1.0, Author)
 #include <aml-psdk/game_sa/other/Stats.h>
 #include <aml-psdk/game_sa/engine/Text.h>
 #include <aml-psdk/game_sa/engine/Font.h>
+#include <aml-psdk/game_sa/engine/PathFind.h>
+#include <aml-psdk/gta_base/DrawVertices.h>
 
 #include <aml-psdk/game_sa/Events.h>
 
@@ -49,4 +51,7 @@ void Test()
     HOOK(CCamera__Process, GET_THISCALL_ADDR(CCamera, Process) ); // <- this definitely looks better than above :p
 
     TheText.Get("do we compile?");
+
+    RwIm2DVertex vert2d;
+    RwIm3DVertex vert3d;
 }

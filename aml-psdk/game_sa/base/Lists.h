@@ -100,4 +100,11 @@ struct CCarPathLinkAddress
     short m_nAreaId : 6;
 };
 
+struct CNodeRoute
+{
+    int m_iRouteSize;
+    CNodeAddress m_routePoints[8];
+};
+
+
 #endif

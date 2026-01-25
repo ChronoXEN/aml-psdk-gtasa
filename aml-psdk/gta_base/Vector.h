@@ -239,11 +239,46 @@ const CVector vectorAxisX(1, 0, 0);
 const CVector vectorAxisY(0, 1, 0);
 const CVector vectorAxisZ(0, 0, 1);
 
+struct CompressedVector2D
+{
+    CompressedVector2D() { Set(0, 0); }
+    CompressedVector2D(short X, short Y) { Set(X, Y); }
+    short x, y;
+    
+    inline void Set(short X, short Y)
+    {
+        x = X;
+        y = Y;
+    }
+    inline void Set(CVector2D const& vec, float resolution = 8.0f)
+    {
+        x = vec.x * resolution;
+        y = vec.y * resolution;
+    }
+    inline CVector2D Uncompress(float resolution)
+    {
+        return CVector2D((float)x / resolution, (float)y / resolution);
+    }
+    inline CVector2D Uncompressed()
+    {
+        return Uncompress(8.0f);
+    }
+    inline void Uncompress(CVector2D& out)
+    {
+        out = Uncompressed();
+    }
+};
+
 struct CompressedVector
 {
     CompressedVector() { Set(0, 0, 0); }
     CompressedVector(short X, short Y, short Z) { Set(X, Y, Z); }
-    short x, y, z;
+    union
+    {
+        CompressedVector2D m_vec2D;
+        struct { short x, y; };
+    };
+    short z;
     
     inline void Set(short X, short Y, short Z)
     {
@@ -269,6 +304,9 @@ struct CompressedVector
     {
         out = Uncompressed();
     }
+    operator CompressedVector2D&() { return m_vec2D; }
+    operator CompressedVector2D*() { return &m_vec2D; }
+    operator CompressedVector2D() const { return m_vec2D; }
 };
 
 #endif // __AML_PSDK_GTAVECTOR_H
