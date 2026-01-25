@@ -20,6 +20,8 @@ MYMOD(net.psdk.mymod.guid, AML PSDK Template, 1.0, Author)
 #include <aml-psdk/game_sa/ai/PedIntelligence.h>
 #include <aml-psdk/game_sa/ai/tasks/Task.h>
 #include <aml-psdk/game_sa/entity/Camera.h>
+#include <aml-psdk/game_sa/engine/Sprite2d.h>
+#include <aml-psdk/game_sa/engine/Sprite.h>
 
 #include <aml-psdk/game_sa/Events.h>
 

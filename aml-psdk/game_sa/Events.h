@@ -1,3 +1,6 @@
+#ifndef __AML_PSDK_SACALLEVENTS_H
+#define __AML_PSDK_SACALLEVENTS_H
+
 #include "plugin.h"
 #include <aml-psdk/sdk_callevents.h>
 
@@ -44,3 +47,5 @@ struct Events
     // Additional events
     DECL_EVENT_PLT_ARG1(void, processCamera, BYBIT(0x6717BC, 0x8429D8), CCamera*, camera);
 };
+
+#endif // __AML_PSDK_SACALLEVENTS_H
