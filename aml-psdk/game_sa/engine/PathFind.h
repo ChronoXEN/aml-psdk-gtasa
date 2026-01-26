@@ -89,6 +89,8 @@ struct CLinkAddress
 
 
 DECL_CLASS(CPathFind)
+    CPathFind(){}
+    
     // Member functions
     DECL_THISCALL_SIMPLE(Init, _ZN9CPathFind4InitEv, void);
     DECL_THISCALL_SIMPLE(ReInit, _ZN9CPathFind6ReInitEv, void);

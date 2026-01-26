@@ -279,6 +279,10 @@ inline Type GetMainLibrarySymbol(const char* sym)
     static inline auto FuncProxy_dtor##_clsName = GetMainLibrarySymbol<void(*)(ThisClass*)>(#_sym); \
     ~_clsName() { FuncProxy_dtor##_clsName(this); }
 
+#define DECL_DTORCALL_PLT(_clsName, _addr) \
+    static inline auto FuncProxy_dtor##_clsName = (void(*)(ThisClass*))(GetMainLibraryAddress() + _addr); \
+    ~_clsName() { FuncProxy_dtor##_clsName(this); }
+
 #define DECL_NEWCALL(_clsName, _sym) \
     static inline auto FuncProxy_opnew##_clsName = GetMainLibrarySymbol<_clsName*(*)(size_t size)>(#_sym); \
     inline static _clsName* Instantiate(size_t size = sizeof(_clsName)) { return FuncProxy_opnew##_clsName(size); }
