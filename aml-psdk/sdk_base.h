@@ -57,6 +57,13 @@ inline Type GetMainLibrarySymbol(const char* sym)
             return *m_Pointer; \
         }
 
+#define DECL_VALUE_PLTPTR_BASE(_type, _name, _addr) \
+        _type& operator()() { return Get(); } \
+        static inline _type& Get() { \
+            if(!m_Pointer) m_Pointer = (_type*)(GetMainLibraryAddress() + _addr); \
+            return *m_Pointer; \
+        }
+
 #define DECL_VALUE_NUMBER_BASE(_type) \
         DECL_VALUE_SETTER_BASE(_type) \
         template<class C> \
@@ -258,7 +265,7 @@ inline Type GetMainLibrarySymbol(const char* sym)
 
 #define DECL_OBJECT_ARRAY_PLT(_type, _name, _addr) \
     DECL_VALUE_HEAD(_type*, _name) \
-        DECL_VALUE_PLT_BASE(_type*, _name, _addr) \
+        DECL_VALUE_PLTPTR_BASE(_type*, _name, _addr) \
         DECL_VALUE_OBJECT_BASE(_type*) \
         DECL_VALUE_OBJECT_ARRAY_BASE(_type) \
         DECL_VALUE_RETURN_BASE(_type*&) \

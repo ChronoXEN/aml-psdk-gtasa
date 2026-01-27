@@ -110,7 +110,7 @@ DECL_CLASS(CFont)
     DECL_FASTCALL_SIMPLE(GetHeight, _ZN5CFont9GetHeightEb, float, bool UseRenderState);
     DECL_FASTCALL_SIMPLE(RenderFontBuffer, _ZN5CFont16RenderFontBufferEv, void);
     DECL_FASTCALL_SIMPLE(ComputeHeight, _ZN5CFont13ComputeHeightEf, float, float fHeight);
-    DECL_FASTCALL_SIMPLE(ParseToken, _ZN5CFont10ParseTokenEPtR5CRGBAhPc, GxtChar*, GxtChar *pCharacters, CRGBA &color, u8 shadow, char *latest_token);
+    DECL_FASTCALL_SIMPLE(ParseToken, _ZN5CFont10ParseTokenEPtR5CRGBAhPc, GxtChar*, GxtChar *pCharacters, CRGBA const &color, u8 shadow, char *latest_token);
     DECL_FASTCALL_SIMPLE(RenderString, _ZN5CFont12RenderStringEffPtS0_f, void, float x, float y, GxtChar *pCharacterStart, GxtChar *pCharacterEnd, float PixelsToAdd);
     DECL_FASTCALL_SIMPLE(PrintStringFromBottom, _ZN5CFont21PrintStringFromBottomEffPt, void, float x, float Bottomy, GxtChar *pCharacters);
     DECL_FASTCALL_SIMPLE(GetNumberLines, _ZN5CFont14GetNumberLinesEffPt, size_t, float x, float y, GxtChar *pCharacters);
@@ -120,7 +120,7 @@ DECL_CLASS(CFont)
     DECL_FASTCALL_SIMPLE(ProcessCurrentString, _ZN5CFont20ProcessCurrentStringEhffPt, size_t, u8 PrintTheString, float x, float y, GxtChar *NewStringChars);
     DECL_FASTCALL_SIMPLE(GetStringWidth1, _ZN5CFont14GetStringWidthEPthh, float, GxtChar *pInCharacters, u8 bIncludeSpaces, u8 bUsingWithScriptValues);
     DECL_FASTCALL_SIMPLE(GetNextSpace, _ZN5CFont12GetNextSpaceEPt, GxtChar*, GxtChar *pCharacters);
-    DECL_FASTCALL_SIMPLE(SetColor, _ZN5CFont8SetColorE5CRGBA, void, CRGBA& color);
+    DECL_FASTCALL_SIMPLE(SetColor, _ZN5CFont8SetColorE5CRGBA, void, CRGBA const& color);
     DECL_FASTCALL_SIMPLE(GetStringWidth2, _ZN5CFont14GetStringWidthEPthhh, float, GxtChar *pCharacters, u8 bIncludeSpaces, u8 bUsingWithScriptValues, u8 isAscii);
     DECL_FASTCALL_SIMPLE(FilterOutTokensFromString, _ZN5CFont25FilterOutTokensFromStringEPt, void, GxtChar *str);
     DECL_FASTCALL_SIMPLE(character_code, _ZN5CFont14character_codeEh, GxtChar, u8 a);
@@ -132,11 +132,11 @@ DECL_CLASS(CFont)
     DECL_FASTCALL_SIMPLE(SetCentreSize, _ZN5CFont13SetCentreSizeEf, void, float x);
     DECL_FASTCALL_SIMPLE(SetRightJustifyWrap, _ZN5CFont19SetRightJustifyWrapEf, void, float wrap);
     DECL_FASTCALL_SIMPLE(SetAlphaFade, _ZN5CFont12SetAlphaFadeEf, void, float alpha);
-    DECL_FASTCALL_SIMPLE(SetDropColor, _ZN5CFont12SetDropColorE5CRGBA, void, CRGBA& dropcolor);
+    DECL_FASTCALL_SIMPLE(SetDropColor, _ZN5CFont12SetDropColorE5CRGBA, void, CRGBA const& dropcolor);
     DECL_FASTCALL_SIMPLE(SetEdge, _ZN5CFont7SetEdgeEa, void, i8 amount);
     DECL_FASTCALL_SIMPLE(SetProportional, _ZN5CFont15SetProportionalEh, void, u8 prop);
     DECL_FASTCALL_SIMPLE(SetBackground, _ZN5CFont13SetBackgroundEhh, void, u8 bg, u8 outline);
-    DECL_FASTCALL_SIMPLE(SetBackgroundColor, _ZN5CFont18SetBackgroundColorE5CRGBA, void, CRGBA& bgcolor);
+    DECL_FASTCALL_SIMPLE(SetBackgroundColor, _ZN5CFont18SetBackgroundColorE5CRGBA, void, CRGBA const& bgcolor);
     DECL_FASTCALL_SIMPLE(SetJustify, _ZN5CFont10SetJustifyEh, void, u8 justify);
     DECL_FASTCALL_SIMPLE(SetOrientation, _ZN5CFont14SetOrientationEh, void, eFontAlignment orientation);
 

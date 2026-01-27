@@ -1,7 +1,7 @@
 #ifndef __AML_PSDK_RWRGBA_H
 #define __AML_PSDK_RWRGBA_H
 
-#include <aml-psdk/game_sa/plugin.h>
+#include <aml-psdk/sdk_base.h>
 #include "RwVector.h"
 #include <aml-psdk/gta_base/RGBA.h>
 

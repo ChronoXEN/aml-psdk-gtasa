@@ -3,6 +3,8 @@
 
 #include <aml-psdk/renderware/RwRGBA.h>
 
+typedef u16 RwImVertexIndex;
+
 struct RwIm2DVertex
 {
     RwIm2DVertex(){}

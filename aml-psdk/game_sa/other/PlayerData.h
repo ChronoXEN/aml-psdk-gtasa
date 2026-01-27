@@ -1,6 +1,7 @@
 #ifndef __AML_PSDK_SAPLAYERDATA_H
 #define __AML_PSDK_SAPLAYERDATA_H
 
+#include <aml-psdk/game_sa/plugin.h>
 #include <aml-psdk/gta_base/Vector.h>
 
 struct CWanted;

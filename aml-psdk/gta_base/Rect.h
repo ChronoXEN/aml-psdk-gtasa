@@ -5,11 +5,10 @@
 
 struct CRect
 {
-    // on mobile it's reversed!
     float left;          // x1
-    float top;           // y2
-    float right;         // x2
     float bottom;        // y1
+    float right;         // x2
+    float top;           // y2
 
     CRect(float _left, float _top, float _right, float _bottom)
     {
@@ -18,7 +17,7 @@ struct CRect
         right = _right;
         bottom = _bottom;
     }
-    CRect() { left = bottom = right = top = 0.0f; }
+    CRect() { Reset(); }
 
     inline bool IsFlipped()
     {
@@ -31,7 +30,6 @@ struct CRect
         if(r.top < top) top = r.top;
         if(r.bottom > bottom) bottom = r.bottom;
     }
-    // TODO:
     inline void Grow(float l, float r, float t, float b)
     {
         left -= l;
@@ -45,6 +43,18 @@ struct CRect
         right += x;
         bottom += y;
         top += y;
+    }
+    inline void Reset()
+    {
+        left = right = bottom = top = 0.0f;
+    }
+    inline bool IsPointInside(CVector2D const& point)
+    {
+        return (point.x >= left && point.x <= right && point.y >= top && point.y <= bottom);
+    }
+    inline CVector2D GetCenter()
+    {
+        return CVector2D(0.5f * (left + right), 0.5f * (top + bottom));
     }
 };
 

@@ -6,6 +6,7 @@
 #include "../audio/AEAudioEntity.h"
 #include "../enum/Handling.h"
 #include "../enum/CarMission.h"
+#include "../enum/Vehicles.h"
 
 struct CPed;
 struct CVehicle;

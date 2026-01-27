@@ -12,6 +12,11 @@ struct RwStream;
 
 struct CPathNode
 {
+    inline CVector GetNodeCoors()
+    {
+        return m_vecPosn.Uncompressed();
+    }
+    
     CPathNode *m_pNext;
     CPathNode *m_pPrev;
     CompressedVector m_vecPosn;
@@ -334,6 +339,10 @@ DECL_CLASS(CPathFind)
     inline CVector FindNodeCoorsForScript(CNodeAddress CurrentNode, CNodeAddress NewNode, float *pOrientation, bool *pSuccess)
     {
         return FindNodeCoorsForScript2(CurrentNode, NewNode, pOrientation, pSuccess);
+    }
+    inline CPathNode* GetPathNode(CNodeAddress address)
+    {
+        return &m_pPathNodes[address.m_nAreaId][address.m_nNodeId];
     }
 
     // Member values

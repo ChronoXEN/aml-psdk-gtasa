@@ -1,7 +1,7 @@
 #ifndef __AML_PSDK_RWMATRIX_H
 #define __AML_PSDK_RWMATRIX_H
 
-#include <aml-psdk/game_sa/plugin.h>
+#include <aml-psdk/sdk_base.h>
 #include "RwVector.h"
 #include "RwStream.h"
 

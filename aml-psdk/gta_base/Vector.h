@@ -69,6 +69,14 @@ struct CVector2D
         return (x <= max && x >= min &&
                 y <= max && y >= min);
     }
+    inline float Magnitude2D() const
+    {
+        return sqrtf(MagnitudeSqr2D());
+    }
+    inline float MagnitudeSqr2D() const
+    {
+        return SQ(x) + SQ(y);
+    }
 };
 
 struct CVector
@@ -159,9 +167,17 @@ struct CVector
                 y <= max && y >= min &&
                 z <= max && z >= min);
     }
-    inline float DistSqr(CVector& v)
+    inline float DistSqr2D(CVector& v)
     {
         return (*this - v).MagnitudeSqr2D();
+    }
+    inline float Dist2D(CVector& v)
+    {
+        return sqrtf(DistSqr2D(v));
+    }
+    inline float DistSqr(CVector& v)
+    {
+        return (*this - v).MagnitudeSqr();
     }
     inline float Dist(CVector& v)
     {
@@ -308,5 +324,14 @@ struct CompressedVector
     operator CompressedVector2D*() { return &m_vec2D; }
     operator CompressedVector2D() const { return m_vec2D; }
 };
+
+inline float DistanceBetweenPoints(CVector const& v1, CVector const& v2)
+{
+    return (v1 - v2).Magnitude();
+}
+inline float DistanceBetweenPoints(CVector2D const& v1, CVector2D const& v2)
+{
+    return (v1 - v2).Magnitude2D();
+}
 
 #endif // __AML_PSDK_GTAVECTOR_H

@@ -3,6 +3,9 @@
 
 #include <aml-psdk/sdk_basetypes.h>
 
+#define RWRGBALONG(r, g, b, a) ((u32) (((a) << 24) | ((b) << 16) | ((g) << 8) | (r)))
+
+
 struct CRGBA
 {
     union
