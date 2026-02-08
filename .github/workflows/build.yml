@@ -19,19 +19,21 @@ jobs:
       run: |
         mkdir -p mod
         
-        # FIX: Changed return types to 'void*' to match the game's expectations
+        # FIX: Added 'PlaceHK' and 'HOOK' macro
         cat << 'EOF' > mod/amlmod.h
         #pragma once
         #include <cstdint>
         class IAMLer { public: 
             void* GetLibHandle(const char*){return 0;} 
             void* GetLib(const char*){return 0;} 
-            void* GetSym(void*, const char*){return 0;} 
+            void* GetSym(void*, const char*){return 0;}
+            void  PlaceHK(void* addr, void* func){} 
         };
         extern IAMLer* aml;
         #define MYMOD(guid, name, version, author) const char* g_szGUID = #guid; const char* g_szName = #name; const char* g_szVersion = #version; const char* g_szAuthor = #author;
         #define MYMODCFG(guid, name, version, author) MYMOD(guid, name, version, author)
         #define DECL_HOOKv(name, ...) void name(__VA_ARGS__)
+        #define HOOK(func, addr) aml->PlaceHK(addr, (void*)func)
         EOF
         
         cat << 'EOF' > mod/logger.h
@@ -47,7 +49,6 @@ jobs:
 
     - name: Build with NDK-Build
       run: |
-        # Force 32-bit build (armeabi-v7a)
         ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21 APP_ABI=armeabi-v7a LOCAL_C_INCLUDES+=.
 
     - name: Upload Mod File
