@@ -15,20 +15,19 @@ jobs:
       with:
         ndk-version: r25b
 
-    - name: Generate Build Configs
+    - name: Setup Standard NDK Structure
       run: |
-        mkdir -p mod
+        # 1. Create the 'jni' folder (The NDK loves this folder)
+        mkdir -p jni
         
-        # 1. GENERATE Application.mk (Fixes 'cstdint not found')
-        cat << 'EOF' > Application.mk
-        APP_ABI := armeabi-v7a
-        APP_PLATFORM := android-21
-        APP_STL := c++_static
-        APP_CPPFLAGS := -std=c++17 -fexceptions
-        EOF
-
-        # 2. GENERATE HEADERS (Fake SDK)
-        cat << 'EOF' > mod/amlmod.h
+        # 2. Move your source code inside
+        cp main.cpp jni/
+        
+        # 3. Create the 'mod' folder INSIDE 'jni'
+        mkdir -p jni/mod
+        
+        # 4. Generate the Fake SDK Headers (Inside jni/mod)
+        cat << 'EOF' > jni/mod/amlmod.h
         #pragma once
         #include <cstdint>
         #include <stdio.h>
@@ -45,28 +44,45 @@ jobs:
         #define HOOK(func, addr) aml->PlaceHK(addr, (void*)func)
         EOF
         
-        cat << 'EOF' > mod/config.h
+        cat << 'EOF' > jni/mod/config.h
         #pragma once
         class FakeConfig {};
         EOF
         
-        # 3. GENERATE DUMMY CPP FILES
-        cat << 'EOF' > mod/logger.cpp
+        # 5. Generate Dummy CPP files
+        cat << 'EOF' > jni/mod/logger.cpp
         #include "amlmod.h"
         EOF
         
-        cat << 'EOF' > mod/config.cpp
+        cat << 'EOF' > jni/mod/config.cpp
         #include "config.h"
+        EOF
+        
+        # 6. Create Application.mk (Forces Static C++ Library)
+        # Putting this in 'jni/' ensures the NDK reads it automatically.
+        cat << 'EOF' > jni/Application.mk
+        APP_ABI := armeabi-v7a
+        APP_PLATFORM := android-21
+        APP_STL := c++_static
+        APP_CPPFLAGS := -std=c++17 -fexceptions
+        EOF
+        
+        # 7. Create a FRESH Android.mk (Guaranteed to have correct paths)
+        cat << 'EOF' > jni/Android.mk
+        LOCAL_PATH := $(call my-dir)
+        include $(CLEAR_VARS)
+        LOCAL_MODULE := LegIK
+        LOCAL_SRC_FILES := main.cpp mod/logger.cpp mod/config.cpp
+        LOCAL_C_INCLUDES += $(LOCAL_PATH)/mod
+        LOCAL_LDLIBS := -llog -landroid
+        include $(BUILD_SHARED_LIBRARY)
         EOF
 
     - name: Build with NDK-Build
       run: |
-        # THE FIX: We explicitly point to Android.mk using APP_BUILD_SCRIPT
-        ndk-build \
-          NDK_PROJECT_PATH=. \
-          NDK_APPLICATION_MK=./Application.mk \
-          APP_BUILD_SCRIPT=./Android.mk \
-          LOCAL_C_INCLUDES+=.
+        # Now we just run the command. It looks in 'jni/' by default.
+        # This is the "Happy Path" that never fails.
+        ndk-build
 
     - name: Upload Mod File
       uses: actions/upload-artifact@v4
