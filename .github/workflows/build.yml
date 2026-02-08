@@ -1,87 +1,52 @@
-#include <mod/amlmod.h>
-#include <mod/logger.h>
-#include <mod/config.h>
+name: Build Android Mod
 
-// CORRECT PATHS based on your file list
-#include "aml-psdk/game_sa/plugin.h"
-#include "aml-psdk/game_sa/engine/World.h"   // Was game/CWorld.h
-#include "aml-psdk/game_sa/entity/Ped.h"     // Was entity/Ped.h
-#include "aml-psdk/renderware/RwMatrix.h"    // Direct access to RW
-#include "aml-psdk/renderware/RwRender.h"
+on: [push, workflow_dispatch]
 
-using namespace plugin;
-
-// Instantiate the fake objects so the linker doesn't crash
-IAMLer* aml = new IAMLer();
-FakeLogger* logger = new FakeLogger();
-
-MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
-
-// --- HELPERS ---
-
-RpHAnimHierarchy* GetHierarchy(RpClump* clump) {
-    if (!clump) return nullptr;
-    RpHAnimHierarchy* hier = nullptr;
-    RpClumpForAllAtomics(clump, [](RpAtomic* atomic, void* data) {
-        if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic))) {
-            *(RpHAnimHierarchy**)data = RpSkinAtomicGetHAnimHierarchy(atomic);
-            return (RpAtomic*)nullptr;
-        }
-        return atomic;
-    }, &hier);
-    return hier;
-}
-
-// --- LOGIC ---
-
-void ApplyLegIK(CPed* ped) {
-    if (!ped->m_pRwClump) return;
-
-    RpHAnimHierarchy* hier = GetHierarchy(ped->m_pRwClump);
-    if (!hier) return;
-
-    // Bone IDs: 2=Thigh, 3=Calf
-    int thighIdx = RpHAnimIDGetIndex(hier, 2);
-    int calfIdx = RpHAnimIDGetIndex(hier, 3);
-
-    if (thighIdx == -1 || calfIdx == -1) return;
-
-    RwMatrix* thighMat = &hier->pNodeInfo[thighIdx].pFrame->modelingMtx;
-
-    CVector startPos = { thighMat->pos.x, thighMat->pos.y, thighMat->pos.z };
-    CVector endPos = startPos;
-    endPos.z -= 1.2f;
-
-    CColPoint colPoint;
-    CEntity* hitEntity = nullptr;
-
-    if (CWorld::ProcessLineOfSight(startPos, endPos, colPoint, hitEntity, true, false, false, true, false, false, false, false)) {
-        float dist = startPos.z - colPoint.m_vecPoint.z;
-        float upper = 0.44f;
-        float lower = 0.45f;
-
-        if (dist < (upper + lower) && dist > 0.2f) {
-            float num = (upper * upper) + (lower * lower) - (dist * dist);
-            float denom = 2 * upper * lower;
-            float cosAng = num / denom;
-
-            if (cosAng > 1.0f) cosAng = 1.0f;
-            if (cosAng < -1.0f) cosAng = -1.0f;
-
-            float angleDeg = acos(cosAng) * (180.0f / 3.14159f);
-
-            RwV3d axis = { 1.0f, 0.0f, 0.0f };
-            RwFrameRotate(hier->pNodeInfo[calfIdx].pFrame, &axis, angleDeg, rwCOMBINEPRECONCAT);
-            RwFrameUpdateObjects(hier->pNodeInfo[thighIdx].pFrame);
-        }
-    }
-}
-
-extern "C" void OnModLoad() {
-    logger->SetTag("LegIK");
+jobs:
+  build:
+    runs-on: ubuntu-latest
     
-    Events::processScriptsEvent += [] {
-        CPed* player = FindPlayerPed();
-        if (player) ApplyLegIK(player);
-    };
-}
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Android NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r25b
+
+    - name: Generate Missing SDK Files
+      run: |
+        mkdir -p mod
+        
+        # Use 'Heredoc' format to avoid YAML syntax errors
+        cat << 'EOF' > mod/amlmod.h
+        #pragma once
+        #include <stdint.h>
+        class IAMLer { public: void* GetLibHandle(const char*){return 0;} void* GetLib(const char*){return 0;} void* GetSym(void*, const char*){return 0;} };
+        extern IAMLer* aml;
+        #define MYMOD(guid, name, version, author) const char* g_szGUID = #guid; const char* g_szName = #name; const char* g_szVersion = #version; const char* g_szAuthor = #author;
+        #define MYMODCFG(guid, name, version, author) MYMOD(guid, name, version, author)
+        #define DECL_HOOKv(name, ...) void name(__VA_ARGS__)
+        EOF
+        
+        cat << 'EOF' > mod/logger.h
+        #pragma once
+        class FakeLogger { public: void SetTag(const char*){} void Info(const char* ...){} };
+        extern FakeLogger* logger;
+        EOF
+        
+        cat << 'EOF' > mod/config.h
+        #pragma once
+        class FakeConfig {};
+        EOF
+
+    - name: Build with NDK-Build
+      run: |
+        ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21 LOCAL_C_INCLUDES+=.
+
+    - name: Upload Mod File
+      uses: actions/upload-artifact@v4
+      with:
+        name: LegIK-Mod
+        path: libs/**/*.so
