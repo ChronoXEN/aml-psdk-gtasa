@@ -19,7 +19,8 @@ jobs:
       run: |
         mkdir -p mod
         
-        # FIX: Added 'PlaceHK' and 'HOOK' macro
+        # 1. GENERATE HEADERS (.h)
+        # ------------------------
         cat << 'EOF' > mod/amlmod.h
         #pragma once
         #include <cstdint>
@@ -47,8 +48,21 @@ jobs:
         class FakeConfig {};
         EOF
 
+        # 2. GENERATE SOURCE FILES (.cpp) - NEW!
+        # --------------------------------------
+        # Android.mk expects these files to exist, so we create empty ones that just include the headers.
+        
+        cat << 'EOF' > mod/logger.cpp
+        #include "logger.h"
+        EOF
+        
+        cat << 'EOF' > mod/config.cpp
+        #include "config.h"
+        EOF
+
     - name: Build with NDK-Build
       run: |
+        # Force 32-bit build (armeabi-v7a)
         ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21 APP_ABI=armeabi-v7a LOCAL_C_INCLUDES+=.
 
     - name: Upload Mod File
