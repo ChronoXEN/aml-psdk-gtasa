@@ -4,88 +4,107 @@
 #include <jni.h>
 #include <math.h>
 
-// --- DEFINITIONS ---
+// --- 1. MEMORY STRUCTURES (The Map) ---
 struct RwV3d { float x, y, z; };
-struct RwMatrix { RwV3d right; uint32_t flags; RwV3d up; uint32_t pad1; RwV3d at; uint32_t pad2; RwV3d pos; uint32_t pad3; };
+struct RwMatrix { 
+    RwV3d right; uint32_t flags; 
+    RwV3d up;    uint32_t pad1; 
+    RwV3d at;    uint32_t pad2; 
+    RwV3d pos;   uint32_t pad3; 
+};
 struct RwFrame { RwMatrix modelingMtx; void* parent; void* next; void* root; };
 struct RpHAnimNodeInfo { int32_t nodeID; int32_t index; int32_t flags; RwFrame* pFrame; };
 struct RpHAnimHierarchy { int32_t flags; int32_t numNodes; RwMatrix* pMatrixArray; void* pMatrixArrayUnaligned; RpHAnimNodeInfo* pNodeInfo; };
-struct RwObject { uint8_t type; uint8_t subType; uint8_t flags; uint8_t privateFlags; void* parent; };
 
-// --- FUNCTION POINTERS ---
-void* (*GetAnimHierarchyFromSkinClump)(void* clump) = nullptr;
-void (*RwFrameRotate)(RwFrame* frame, RwV3d* axis, float angle, int combine) = nullptr;
-void (*RwFrameUpdateObjects)(RwFrame* frame) = nullptr;
+// --- 2. HELPERS ---
 
-// Constants
-#define rwCOMBINEREPLACE 0 
-#define rwCOMBINEPRECONCAT 1
+// Helper to calculate specific bone rotation without game functions
+void RotateMatrixX(RwMatrix* matrix, float angleDeg) {
+    float rad = angleDeg * (3.14159f / 180.0f);
+    float c = cosf(rad);
+    float s = sinf(rad);
+
+    // Rotate the UP and AT vectors around the RIGHT vector (X-Axis)
+    // This is manual matrix math
+    RwV3d oldUp = matrix->up;
+    RwV3d oldAt = matrix->at;
+
+    matrix->up.x = oldUp.x; // X stays same
+    matrix->up.y = oldUp.y * c - oldUp.z * s;
+    matrix->up.z = oldUp.y * s + oldUp.z * c;
+
+    matrix->at.x = oldAt.x; // X stays same
+    matrix->at.y = oldAt.y * c - oldAt.z * s;
+    matrix->at.z = oldAt.y * s + oldAt.z * c;
+    
+    // Mark as dirty (usually flag 0x2 or similar, but just editing values works for rendering)
+}
+
+// Manual hierarchy finder (Traverses pointers)
+RpHAnimHierarchy* GetHierarchyManual(void* clump) {
+    if(!clump) return nullptr;
+    
+    // In GTA SA, Clump -> AtomicList -> Atomic -> Geometry -> Skin -> Hierarchy
+    // We will take a shortcut. The Hierarchy is often linked in the Atomic's extension.
+    // But since that's hard to hardcode, let's look for the standard pointer chain.
+    
+    // POINTER CHAIN FOR v2.00 (Approximation)
+    // Clump + 0x18 -> Atomic List
+    // Atomic + 0x18 -> Geometry
+    // Geometry + 0x28 (variable) -> Skin
+    
+    // IF THIS FAILS, WE ABORT.
+    // For now, let's rely on the symbol strictly for this one function 
+    // because manual traversal is crash-prone without exact v2.00 offsets.
+    return nullptr; 
+}
+
+// --- 3. MOD SETUP ---
 
 IAMLer* aml = new IAMLer();
 FakeLogger* logger = new FakeLogger();
 MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
 
-// --- MEMORY SCANNER ---
-// This finds the 3D Model pointer automatically, no matter what version of GTA you have.
-void* FindClumpInPed(void* pedPtr) {
-    if(!pedPtr) return nullptr;
-    
-    // Scan the first 50 pointers inside the Ped class
-    uintptr_t* scan = (uintptr_t*)pedPtr;
-    for(int i = 0; i < 50; i++) {
-        void* candidate = (void*)scan[i];
-        
-        // Basic Validity Check: Is it a valid pointer?
-        // (In Android, valid heap pointers usually start with 0xB or 0x7)
-        if(candidate == nullptr || (uintptr_t)candidate < 0x100000) continue;
+// Function pointer for the one function we really need
+void* (*GetAnimHierarchyFromSkinClump)(void* clump) = nullptr;
 
-        // Check if it looks like a RwObject (Type 2 = Clump)
-        // We use a safe try/catch equivalent by hoping we don't segfault (AML handles some of this)
-        // But scanning is generally safe-ish on valid pointers.
-        RwObject* obj = (RwObject*)candidate;
-        if(obj->type == 2 && obj->subType == 1) { // 2 = rpCLUMP
-             return candidate;
-        }
-    }
-    return nullptr;
-}
 
-// --- LOGIC ---
-void ApplyExorcist(void* pRwClump) {
-    if (!pRwClump || !GetAnimHierarchyFromSkinClump || !RwFrameRotate) return;
+// --- 4. THE LOGIC ---
+
+void ApplyManualBend(void* pRwClump) {
+    if (!pRwClump || !GetAnimHierarchyFromSkinClump) return;
 
     RpHAnimHierarchy* hier = (RpHAnimHierarchy*)GetAnimHierarchyFromSkinClump(pRwClump);
     if (!hier) return;
 
-    // Find HEAD (Bone ID 5)
-    int headIdx = -1;
+    // Find Left Calf (ID 3)
+    int calfIdx = -1;
+    // Iterate manually through the array (safe)
     for(int i=0; i<hier->numNodes; i++) {
-        if(hier->pNodeInfo[i].nodeID == 5) { // 5 = HEAD
-            headIdx = i;
+        if(hier->pNodeInfo[i].nodeID == 3) {
+            calfIdx = i;
             break;
         }
     }
 
-    if (headIdx == -1) return;
+    if (calfIdx == -1) return;
 
-    // FORCE ROTATION: 180 Degrees (Backwards)
-    RwFrame* headFrame = hier->pNodeInfo[headIdx].pFrame;
-    RwV3d axis = { 0.0f, 0.0f, 1.0f }; // Z-Axis (Twist)
-    float angle = 180.0f; 
+    RwFrame* calfFrame = hier->pNodeInfo[calfIdx].pFrame;
 
-    // REPLACE animation
-    RwFrameRotate(headFrame, &axis, angle, rwCOMBINEREPLACE);
-    if(RwFrameUpdateObjects) RwFrameUpdateObjects(headFrame);
+    // FORCE BEND: 90 Degrees
+    // We are editing the matrix directly. The game cannot "overwrite" this 
+    // because we are doing it right before it draws.
+    RotateMatrixX(&calfFrame->modelingMtx, 90.0f);
 }
 
-// --- RENDER HOOK ---
-DECL_HOOKv(CPed_Render, void* self) {
-    CPed_Render(self); 
+// Hooking CPed::PreRender (Offset 0x18 for Clump is consistent across versions)
+DECL_HOOKv(CPed_PreRender, void* self) {
+    CPed_PreRender(self); // Let game calculate animation
     
     if(self) {
-        // Use the Scanner instead of a fixed offset
-        void* clump = FindClumpInPed(self);
-        if(clump) ApplyExorcist(clump);
+        // v2.00 Clump Offset check
+        void* clump = *(void**)((uintptr_t)self + 0x18);
+        if(clump) ApplyManualBend(clump);
     }
 }
 
@@ -93,11 +112,10 @@ extern "C" void OnModLoad() {
     logger->SetTag("LegIK");
     void* hGame = aml->GetLibHandle("libGTASA.so");
     
-    // Look up Symbols
+    // v2.00 Symbol Check
+    // If this symbol fails, we are dead in the water anyway.
     GetAnimHierarchyFromSkinClump = (void*(*)(void*))aml->GetSym(hGame, "_Z29GetAnimHierarchyFromSkinClumpP7RpClump");
-    RwFrameRotate = (void(*)(RwFrame*, RwV3d*, float, int))aml->GetSym(hGame, "_Z13RwFrameRotateP7RwFramePK5RwV3d19RwOpCombineType");
-    RwFrameUpdateObjects = (void(*)(RwFrame*))aml->GetSym(hGame, "_Z20RwFrameUpdateObjectsP7RwFrame");
 
-    // Hook
-    HOOK(CPed_Render, aml->GetSym(hGame, "_ZN4CPed6RenderEv"));
+    // Hook PreRender
+    HOOK(CPed_PreRender, aml->GetSym(hGame, "_ZN4CPed9PreRenderEv"));
 }
