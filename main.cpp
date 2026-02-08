@@ -2,7 +2,12 @@
 #include <mod/logger.h>
 #include <mod/config.h>
 
-// CORRECT PATHS
+// Fallback for BYBIT if the SDK fails to define it in 32-bit mode
+#ifndef BYBIT
+#define BYBIT(a, b) a
+#endif
+
+// SDK Includes
 #include "aml-psdk/game_sa/plugin.h"
 #include "aml-psdk/game_sa/engine/World.h"
 #include "aml-psdk/game_sa/entity/Ped.h"
@@ -11,7 +16,6 @@
 
 using namespace plugin;
 
-// Instantiate fakes to satisfy linker
 IAMLer* aml = new IAMLer();
 FakeLogger* logger = new FakeLogger();
 
@@ -19,7 +23,6 @@ MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
 
 // --- HELPERS ---
 
-// Manual function to find a bone index (Safest method)
 int GetBoneIndex(RpHAnimHierarchy* hier, int boneID) {
     if (!hier) return -1;
     for (int i = 0; i < hier->numNodes; i++) {
@@ -82,8 +85,6 @@ void ApplyLegIK(CPed* ped) {
             float angleDeg = acos(cosAng) * (180.0f / 3.14159f);
 
             RwV3d axis = { 1.0f, 0.0f, 0.0f };
-            // Use standard RW function if available, otherwise manual matrix math would be needed
-            // But RwFrameRotate is usually linked in game_sa libraries
             RwFrameRotate(hier->pNodeInfo[calfIdx].pFrame, &axis, angleDeg, rwCOMBINEPRECONCAT);
             RwFrameUpdateObjects(hier->pNodeInfo[thighIdx].pFrame);
         }
