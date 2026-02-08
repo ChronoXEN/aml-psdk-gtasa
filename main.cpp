@@ -3,103 +3,131 @@
 #include <mod/config.h>
 #include <jni.h>
 #include <math.h>
+#include <stdio.h> // For file logging
 
-// --- STRUCTURES ---
+// --- 1. DEFINITIONS ---
 struct RwV3d { float x, y, z; };
 struct RwMatrix { RwV3d right; uint32_t flags; RwV3d up; uint32_t pad1; RwV3d at; uint32_t pad2; RwV3d pos; uint32_t pad3; };
 struct RwFrame { RwMatrix modelingMtx; void* parent; void* next; void* root; };
 
-// The Wrapper you get from RpAnimBlendClumpFindBone
+// The Wrapper (AnimBlendFrameData)
 struct AnimBlendFrameData {
     uint32_t flags;
     RwV3d    vecOffset;
-    RwFrame* pFrame; // <--- THIS is what we want. Usually at offset 0x10 or 0x14.
+    RwFrame* pFrame; // We hope this is at 0x10
 };
 
-// --- SYMBOLS ---
-// RpAnimBlendClumpFindBone(RpClump*, uint)
+// --- 2. SYMBOLS ---
 void* (*RpAnimBlendClumpFindBone)(void* clump, unsigned int boneID) = nullptr;
-
-// We don't need RwFrameRotate anymore. We will do the math ourselves.
+void (*RwFrameUpdateObjects)(RwFrame* frame) = nullptr;
 
 IAMLer* aml = new IAMLer();
 FakeLogger* logger = new FakeLogger();
 MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
 
-// --- MANUAL ROTATION MATH ---
-// Rotates a matrix on the X-axis (Pitch) by 'angle' degrees
-void RotateMatrixX(RwMatrix* mtx, float angle) {
+// --- 3. FILE LOGGER ---
+// This writes debug info to your SD card so we can see what's failing.
+void LogToSD(const char* fmt, ...) {
+    FILE* f = fopen("/sdcard/legik.log", "a");
+    if (f) {
+        va_list args;
+        va_start(args, fmt);
+        vfprintf(f, fmt, args);
+        fprintf(f, "\n");
+        va_end(args);
+        fclose(f);
+    }
+}
+
+// --- 4. LOGIC ---
+void ApplyBoneBend(void* clump) {
+    // 1. Try to find the Left Calf (ID 3)
+    void* wrapper = RpAnimBlendClumpFindBone(clump, 3);
+    
+    if(!wrapper) {
+        // LogToSD("Error: Bone 3 not found via RpAnimBlendClumpFindBone");
+        return;
+    }
+
+    // 2. Extract RwFrame (Try offset 0x10)
+    RwFrame* frame = *(RwFrame**)((uintptr_t)wrapper + 0x10);
+    
+    // Safety: If pointer looks garbage, try 0x14
+    if((uintptr_t)frame < 0x100000) {
+         frame = *(RwFrame**)((uintptr_t)wrapper + 0x14);
+    }
+
+    if(!frame) {
+        // LogToSD("Error: Found wrapper, but RwFrame is NULL");
+        return;
+    }
+
+    // 3. FORCE TEST: ROTATE 90 DEGREES
+    // We modify the matrix manually
+    float angle = 90.0f;
     float rad = angle * (3.14159f / 180.0f);
     float c = cosf(rad);
     float s = sinf(rad);
 
-    // GTA Matrices: Up = Y, At = Z.
-    // Rotate Up and At around Right (X)
-    RwV3d oldUp = mtx->up;
-    RwV3d oldAt = mtx->at;
+    // Rotate Up and At around Right (X-Axis)
+    RwV3d oldUp = frame->modelingMtx.up;
+    RwV3d oldAt = frame->modelingMtx.at;
 
-    mtx->up.y = oldUp.y * c - oldUp.z * s;
-    mtx->up.z = oldUp.y * s + oldUp.z * c;
+    frame->modelingMtx.up.y = oldUp.y * c - oldUp.z * s;
+    frame->modelingMtx.up.z = oldUp.y * s + oldUp.z * c;
+    frame->modelingMtx.at.y = oldAt.y * c - oldAt.z * s;
+    frame->modelingMtx.at.z = oldAt.y * s + oldAt.z * c;
 
-    mtx->at.y = oldAt.y * c - oldAt.z * s;
-    mtx->at.z = oldAt.y * s + oldAt.z * c;
-    
-    // Dirty flag (0x2) tells the game "Recalculate this bone"
-    // We just OR it in to be safe.
-    mtx->flags |= 0x2; 
-}
+    // Set Dirty Flag (Force Update)
+    frame->modelingMtx.flags |= 0x2;
 
-// --- LOGIC ---
-
-void ApplyBoneBend(void* clump) {
-    if(!clump || !RpAnimBlendClumpFindBone) return;
-
-    // 1. Get the Wrapper (AnimBlendFrameData)
-    // Bone 3 = Left Calf
-    void* wrapper = RpAnimBlendClumpFindBone(clump, 3);
-    
-    if(!wrapper) return;
-
-    // 2. Extract the Real Bone (RwFrame)
-    // In GTA SA Android, the RwFrame* is usually at offset 0x10 or 0x14 of the wrapper.
-    // Let's try 0x10 first (Standard for 32-bit).
-    // wrapper + 16 bytes = pFrame?
-    
-    RwFrame* frame = *(RwFrame**)((uintptr_t)wrapper + 0x10);
-    
-    // Safety check: Does it look like a valid pointer?
-    if((uintptr_t)frame < 0x10000) {
-        // Try offset 0x14 just in case
-        frame = *(RwFrame**)((uintptr_t)wrapper + 0x14);
+    // 4. Update Objects (Critical for Visuals)
+    if(RwFrameUpdateObjects) {
+        RwFrameUpdateObjects(frame);
     }
-
-    if(!frame) return;
-
-    // 3. FORCE TEST: 90 Degrees
-    RotateMatrixX(&frame->modelingMtx, 90.0f);
-    
-    // Note: We don't call RwFrameUpdateObjects. 
-    // Since we hooked PreRender, the game will update the children automatically when it draws.
 }
 
-// Hook CPed::PreRender
+// Global flag to log only once (spam prevention)
+bool hasLogged = false;
+
 DECL_HOOKv(CPed_PreRender, void* self) {
     CPed_PreRender(self); 
     
     if(self) {
-        // Get Clump from Offset 0x18
+        // Offset 0x18 is Clump
         void* clump = *(void**)((uintptr_t)self + 0x18);
+        
+        if (!hasLogged) {
+            LogToSD("--- MOD STARTED ---");
+            LogToSD("Hook: CPed_PreRender called!");
+            LogToSD("Player Pointer: %p", self);
+            LogToSD("Clump Pointer (at 0x18): %p", clump);
+            if(clump) {
+                void* testBone = RpAnimBlendClumpFindBone(clump, 3);
+                LogToSD("Bone 3 Wrapper: %p", testBone);
+                if(testBone) {
+                     RwFrame* f = *(RwFrame**)((uintptr_t)testBone + 0x10);
+                     LogToSD("RwFrame at 0x10: %p", f);
+                }
+            }
+            hasLogged = true; // Stop logging after first frame
+        }
+
         if(clump) ApplyBoneBend(clump);
     }
 }
 
 extern "C" void OnModLoad() {
-    logger->SetTag("LegIK");
+    // Clear the log file on startup
+    FILE* f = fopen("/sdcard/legik.log", "w");
+    if(f) { fprintf(f, "Mod Loaded.\n"); fclose(f); }
+
     void* hGame = aml->GetLibHandle("libGTASA.so");
     
-    // Load YOUR symbol
+    // Load Functions
     RpAnimBlendClumpFindBone = (void*(*)(void*, unsigned int))aml->GetSym(hGame, "_Z24RpAnimBlendClumpFindBoneP7RpClumpj");
+    RwFrameUpdateObjects = (void(*)(RwFrame*))aml->GetSym(hGame, "_Z20RwFrameUpdateObjectsP7RwFrame");
     
-    // Hook
+    // Install Hook
     HOOK(CPed_PreRender, aml->GetSym(hGame, "_ZN4CPed9PreRenderEv"));
 }
