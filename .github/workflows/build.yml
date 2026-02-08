@@ -15,20 +15,12 @@ jobs:
       with:
         ndk-version: r25b
 
-    - name: Setup Standard NDK Structure
+    - name: Generate Missing SDK Files
       run: |
-        # 1. Create the 'jni' folder structure
-        mkdir -p jni
-        mkdir -p jni/mod
+        mkdir -p mod
         
-        # 2. Move your main code
-        cp main.cpp jni/
-        
-        # 3. GENERATE ALL HEADERS (The "Fake SDK")
-        # ----------------------------------------
-        
-        # amlmod.h
-        cat << 'EOF' > jni/mod/amlmod.h
+        # 1. GENERATE HEADERS
+        cat << 'EOF' > mod/amlmod.h
         #pragma once
         #include <cstdint>
         #include <stdio.h>
@@ -45,54 +37,30 @@ jobs:
         #define HOOK(func, addr) aml->PlaceHK(addr, (void*)func)
         EOF
         
-        # logger.h (THIS WAS MISSING BEFORE)
-        cat << 'EOF' > jni/mod/logger.h
-        #pragma once
-        class FakeLogger { public: void SetTag(const char*){} };
-        extern FakeLogger* logger;
-        EOF
-        
-        # config.h
-        cat << 'EOF' > jni/mod/config.h
+        cat << 'EOF' > mod/config.h
         #pragma once
         class FakeConfig {};
         EOF
         
-        # 4. GENERATE DUMMY CPP FILES
-        cat << 'EOF' > jni/mod/logger.cpp
+        cat << 'EOF' > mod/logger.cpp
         #include "amlmod.h"
-        #include "logger.h"
         EOF
         
-        cat << 'EOF' > jni/mod/config.cpp
+        cat << 'EOF' > mod/config.cpp
         #include "config.h"
         EOF
-        
-        # 5. Create Application.mk (Forces Static C++ Library)
-        cat << 'EOF' > jni/Application.mk
-        APP_ABI := armeabi-v7a
-        APP_PLATFORM := android-21
-        APP_STL := c++_static
-        APP_CPPFLAGS := -std=c++17 -fexceptions
-        EOF
-        
-        # 6. Create Android.mk
-        cat << 'EOF' > jni/Android.mk
-        LOCAL_PATH := $(call my-dir)
-        include $(CLEAR_VARS)
-        LOCAL_MODULE := LegIK
-        LOCAL_SRC_FILES := main.cpp mod/logger.cpp mod/config.cpp
-        
-        # FIX: Point to current dir so <mod/logger.h> works
-        LOCAL_C_INCLUDES := $(LOCAL_PATH)
-        
-        LOCAL_LDLIBS := -llog -landroid
-        include $(BUILD_SHARED_LIBRARY)
-        EOF
 
-    - name: Build with NDK-Build
+    - name: Build with NDK-Build (STATIC + VISIBLE)
       run: |
-        ndk-build
+        # We add -fvisibility=default to ensure AML can see the functions
+        ndk-build \
+          NDK_PROJECT_PATH=. \
+          APP_BUILD_SCRIPT=./Android.mk \
+          APP_PLATFORM=android-21 \
+          APP_ABI=armeabi-v7a \
+          APP_STL=c++_static \
+          LOCAL_C_INCLUDES+=. \
+          LOCAL_CFLAGS+="-fvisibility=default"
 
     - name: Upload Mod File
       uses: actions/upload-artifact@v4
