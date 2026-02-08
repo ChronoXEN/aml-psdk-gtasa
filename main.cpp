@@ -4,107 +4,61 @@
 #include <jni.h>
 #include <math.h>
 
-// --- 1. MEMORY STRUCTURES (The Map) ---
+// --- 1. DEFINITIONS ---
 struct RwV3d { float x, y, z; };
-struct RwMatrix { 
-    RwV3d right; uint32_t flags; 
-    RwV3d up;    uint32_t pad1; 
-    RwV3d at;    uint32_t pad2; 
-    RwV3d pos;   uint32_t pad3; 
-};
+struct RwMatrix { RwV3d right; uint32_t flags; RwV3d up; uint32_t pad1; RwV3d at; uint32_t pad2; RwV3d pos; uint32_t pad3; };
 struct RwFrame { RwMatrix modelingMtx; void* parent; void* next; void* root; };
-struct RpHAnimNodeInfo { int32_t nodeID; int32_t index; int32_t flags; RwFrame* pFrame; };
-struct RpHAnimHierarchy { int32_t flags; int32_t numNodes; RwMatrix* pMatrixArray; void* pMatrixArrayUnaligned; RpHAnimNodeInfo* pNodeInfo; };
 
-// --- 2. HELPERS ---
+// --- 2. THE MAGICAL FUNCTION YOU FOUND ---
+// _Z24RpAnimBlendClumpFindBoneP7RpClumpj -> RpAnimBlendClumpFindBone(RpClump*, uint)
+void* (*RpAnimBlendClumpFindBone)(void* clump, unsigned int boneID) = nullptr;
 
-// Helper to calculate specific bone rotation without game functions
-void RotateMatrixX(RwMatrix* matrix, float angleDeg) {
-    float rad = angleDeg * (3.14159f / 180.0f);
-    float c = cosf(rad);
-    float s = sinf(rad);
+// Helper to rotate
+void (*RwFrameRotate)(RwFrame* frame, RwV3d* axis, float angle, int combine) = nullptr;
+void (*RwFrameUpdateObjects)(RwFrame* frame) = nullptr;
 
-    // Rotate the UP and AT vectors around the RIGHT vector (X-Axis)
-    // This is manual matrix math
-    RwV3d oldUp = matrix->up;
-    RwV3d oldAt = matrix->at;
-
-    matrix->up.x = oldUp.x; // X stays same
-    matrix->up.y = oldUp.y * c - oldUp.z * s;
-    matrix->up.z = oldUp.y * s + oldUp.z * c;
-
-    matrix->at.x = oldAt.x; // X stays same
-    matrix->at.y = oldAt.y * c - oldAt.z * s;
-    matrix->at.z = oldAt.y * s + oldAt.z * c;
-    
-    // Mark as dirty (usually flag 0x2 or similar, but just editing values works for rendering)
-}
-
-// Manual hierarchy finder (Traverses pointers)
-RpHAnimHierarchy* GetHierarchyManual(void* clump) {
-    if(!clump) return nullptr;
-    
-    // In GTA SA, Clump -> AtomicList -> Atomic -> Geometry -> Skin -> Hierarchy
-    // We will take a shortcut. The Hierarchy is often linked in the Atomic's extension.
-    // But since that's hard to hardcode, let's look for the standard pointer chain.
-    
-    // POINTER CHAIN FOR v2.00 (Approximation)
-    // Clump + 0x18 -> Atomic List
-    // Atomic + 0x18 -> Geometry
-    // Geometry + 0x28 (variable) -> Skin
-    
-    // IF THIS FAILS, WE ABORT.
-    // For now, let's rely on the symbol strictly for this one function 
-    // because manual traversal is crash-prone without exact v2.00 offsets.
-    return nullptr; 
-}
-
-// --- 3. MOD SETUP ---
+// Constants
+#define rwCOMBINEREPLACE 0 
+#define rwCOMBINEPRECONCAT 1
 
 IAMLer* aml = new IAMLer();
 FakeLogger* logger = new FakeLogger();
 MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
 
-// Function pointer for the one function we really need
-void* (*GetAnimHierarchyFromSkinClump)(void* clump) = nullptr;
 
+// --- 3. THE LOGIC ---
 
-// --- 4. THE LOGIC ---
+void ApplyBoneBend(void* clump) {
+    if(!clump || !RpAnimBlendClumpFindBone || !RwFrameRotate) return;
 
-void ApplyManualBend(void* pRwClump) {
-    if (!pRwClump || !GetAnimHierarchyFromSkinClump) return;
+    // USE YOUR FUNCTION TO FIND BONE 3 (Left Calf)
+    // 3 = BONE_L_CALF in GTA SA
+    void* bonePtr = RpAnimBlendClumpFindBone(clump, 3);
+    
+    if(!bonePtr) return;
 
-    RpHAnimHierarchy* hier = (RpHAnimHierarchy*)GetAnimHierarchyFromSkinClump(pRwClump);
-    if (!hier) return;
+    // Cast it to RwFrame (Standard RenderWare structure)
+    RwFrame* calfFrame = (RwFrame*)bonePtr;
 
-    // Find Left Calf (ID 3)
-    int calfIdx = -1;
-    // Iterate manually through the array (safe)
-    for(int i=0; i<hier->numNodes; i++) {
-        if(hier->pNodeInfo[i].nodeID == 3) {
-            calfIdx = i;
-            break;
-        }
-    }
+    // FORCE TEST: 90 Degrees Backward
+    RwV3d axis = { 1.0f, 0.0f, 0.0f }; // X-Axis
+    float angle = 90.0f;
 
-    if (calfIdx == -1) return;
-
-    RwFrame* calfFrame = hier->pNodeInfo[calfIdx].pFrame;
-
-    // FORCE BEND: 90 Degrees
-    // We are editing the matrix directly. The game cannot "overwrite" this 
-    // because we are doing it right before it draws.
-    RotateMatrixX(&calfFrame->modelingMtx, 90.0f);
+    // Apply Rotation
+    RwFrameRotate(calfFrame, &axis, angle, rwCOMBINEREPLACE);
+    
+    // Update Physics/Children
+    if(RwFrameUpdateObjects) RwFrameUpdateObjects(calfFrame);
 }
 
-// Hooking CPed::PreRender (Offset 0x18 for Clump is consistent across versions)
+// Hook CPed::PreRender
 DECL_HOOKv(CPed_PreRender, void* self) {
-    CPed_PreRender(self); // Let game calculate animation
+    CPed_PreRender(self); 
     
     if(self) {
-        // v2.00 Clump Offset check
+        // Get Clump from Offset 0x18
         void* clump = *(void**)((uintptr_t)self + 0x18);
-        if(clump) ApplyManualBend(clump);
+        if(clump) ApplyBoneBend(clump);
     }
 }
 
@@ -112,10 +66,13 @@ extern "C" void OnModLoad() {
     logger->SetTag("LegIK");
     void* hGame = aml->GetLibHandle("libGTASA.so");
     
-    // v2.00 Symbol Check
-    // If this symbol fails, we are dead in the water anyway.
-    GetAnimHierarchyFromSkinClump = (void*(*)(void*))aml->GetSym(hGame, "_Z29GetAnimHierarchyFromSkinClumpP7RpClump");
+    // 4. LOAD YOUR SYMBOL
+    RpAnimBlendClumpFindBone = (void*(*)(void*, unsigned int))aml->GetSym(hGame, "_Z24RpAnimBlendClumpFindBoneP7RpClumpj");
+    
+    // Load Helpers
+    RwFrameRotate = (void(*)(RwFrame*, RwV3d*, float, int))aml->GetSym(hGame, "_Z13RwFrameRotateP7RwFramePK5RwV3d19RwOpCombineType");
+    RwFrameUpdateObjects = (void(*)(RwFrame*))aml->GetSym(hGame, "_Z20RwFrameUpdateObjectsP7RwFrame");
 
-    // Hook PreRender
+    // Hook
     HOOK(CPed_PreRender, aml->GetSym(hGame, "_ZN4CPed9PreRenderEv"));
 }
