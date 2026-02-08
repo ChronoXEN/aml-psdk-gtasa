@@ -19,14 +19,14 @@ jobs:
       run: |
         mkdir -p mod
         
-        # FIX 1: Use 'uintptr_t' instead of 'void*' to match SDK expectations
+        # FIX: Changed return types to 'void*' to match the game's expectations
         cat << 'EOF' > mod/amlmod.h
         #pragma once
         #include <cstdint>
         class IAMLer { public: 
-            uintptr_t GetLibHandle(const char*){return 0;} 
-            uintptr_t GetLib(const char*){return 0;} 
-            uintptr_t GetSym(void*, const char*){return 0;} 
+            void* GetLibHandle(const char*){return 0;} 
+            void* GetLib(const char*){return 0;} 
+            void* GetSym(void*, const char*){return 0;} 
         };
         extern IAMLer* aml;
         #define MYMOD(guid, name, version, author) const char* g_szGUID = #guid; const char* g_szName = #name; const char* g_szVersion = #version; const char* g_szAuthor = #author;
@@ -47,7 +47,7 @@ jobs:
 
     - name: Build with NDK-Build
       run: |
-        # FIX 2: Force APP_ABI=armeabi-v7a (32-bit)
+        # Force 32-bit build (armeabi-v7a)
         ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21 APP_ABI=armeabi-v7a LOCAL_C_INCLUDES+=.
 
     - name: Upload Mod File
