@@ -1,21 +1,59 @@
-// WE USE RELATIVE PATHS BECAUSE YOUR REPO STRUCTURE IS DIFFERENT
+// --- FAKE AMLMOD.H (Since you are missing the file) ---
+#pragma once
+
+// Define the macros the SDK needs
+#define MYMOD(_guid, _name, _ver, _author) \
+    const char* g_szGUID = #_guid; \
+    const char* g_szName = #_name; \
+    const char* g_szVersion = #_ver; \
+    const char* g_szAuthor = #_author;
+
+#define MYMODCFG(_guid, _name, _ver, _author) MYMOD(_guid, _name, _ver, _author)
+
+#define DECL_HOOKv(_name, ...) void _name(__VA_ARGS__)
+// -----------------------------------------------------
+
+// Now include the game files you actually have
 #include "aml-psdk/game_sa/plugin.h"
 #include "aml-psdk/game_sa/game/CWorld.h"
-#include "aml-psdk/game_sa/entity/Ped.h" 
+#include "aml-psdk/game_sa/entity/Ped.h"
+#include "aml-psdk/game_sa/game/RenderWare.h" // Added for RwFrame
 
-// Namespace usually provided by the SDK
 using namespace plugin;
 
-// --- MAIN LOGIC ---
+// CONFIG: Name your mod here
+MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
+
+// --- HELPERS ---
+
+// Helper to find hierarchy manually
+RpHAnimHierarchy* GetHierarchy(RpClump* clump) {
+    if (!clump) return nullptr;
+    RpHAnimHierarchy* hier = nullptr;
+    
+    // Manual search for the hierarchy
+    RpClumpForAllAtomics(clump, [](RpAtomic* atomic, void* data) {
+        if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic))) {
+            *(RpHAnimHierarchy**)data = RpSkinAtomicGetHAnimHierarchy(atomic);
+            return (RpAtomic*)nullptr; 
+        }
+        return atomic;
+    }, &hier);
+    
+    return hier;
+}
+
+// --- MAIN IK LOGIC ---
 
 void ApplyLegIK(CPed* ped) {
     if (!ped->m_pRwClump) return;
 
-    // 1. Get Hierarchy (Using SDK helper if available, or manual)
-    RpHAnimHierarchy* hier = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
+    // 1. Get Hierarchy
+    RpHAnimHierarchy* hier = GetHierarchy(ped->m_pRwClump);
     if (!hier) return;
 
     // 2. Bone IDs (2 = L_Thigh, 3 = L_Calf)
+    // Note: We use raw IDs because we can't trust the helper functions exist
     int thighIdx = RpHAnimIDGetIndex(hier, 2);
     int calfIdx = RpHAnimIDGetIndex(hier, 3);
 
@@ -32,7 +70,6 @@ void ApplyLegIK(CPed* ped) {
     CColPoint colPoint;
     CEntity* hitEntity = nullptr;
 
-    // 5. The SDK Raycast Function
     if (CWorld::ProcessLineOfSight(startPos, endPos, colPoint, hitEntity, true, false, false, true, false, false, false, false)) {
         float dist = startPos.z - colPoint.m_vecPoint.z;
         float upper = 0.44f;
@@ -46,8 +83,7 @@ void ApplyLegIK(CPed* ped) {
             if (cosAng > 1.0f) cosAng = 1.0f;
             if (cosAng < -1.0f) cosAng = -1.0f;
 
-            float angleRad = acos(cosAng);
-            float angleDeg = angleRad * (180.0f / 3.14159f);
+            float angleDeg = acos(cosAng) * (180.0f / 3.14159f);
 
             // 6. Apply Rotation
             RwV3d axis = { 1.0f, 0.0f, 0.0f };
@@ -58,11 +94,9 @@ void ApplyLegIK(CPed* ped) {
 }
 
 // --- ENTRY POINT ---
-// Since we don't have 'mod/amlmod.h', we use a standard constructor function 
-// that NDK plugins use. The SDK likely calls a function on load.
 
 extern "C" void OnModLoad() {
-    // This connects our logic to the game timer
+    // Basic hook to run every frame
     Events::processScriptsEvent += [] {
         CPed* player = FindPlayerPed();
         if (player) {
