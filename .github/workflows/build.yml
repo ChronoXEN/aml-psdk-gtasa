@@ -1,0 +1,31 @@
+name: Build Android Mod
+
+on: [push] # Runs every time you save a file
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Uses GitHub's Linux computer
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive # Grabs the AML SDK automatically
+
+    - name: Setup Android NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r25b # The version AML likes
+
+    - name: Build with CMake
+      run: |
+        mkdir build
+        cd build
+        cmake -DANDROID_ABI=armeabi-v7a -DANDROID_PLATFORM=android-21 -DANDROID_NDK=$ANDROID_NDK_HOME -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake ..
+        make
+
+    - name: Upload Mod File
+      uses: actions/upload-artifact@v3
+      with:
+        name: LegIK.so
+        path: build/*.so # Uploads the finished file for you
