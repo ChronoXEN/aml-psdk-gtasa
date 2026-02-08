@@ -1,68 +1,64 @@
-// --- FAKE AMLMOD.H (Since you are missing the file) ---
-#pragma once
+#include <mod/amlmod.h>
+#include <mod/logger.h>
+#include <mod/config.h>
 
-// Define the macros the SDK needs
-#define MYMOD(_guid, _name, _ver, _author) \
-    const char* g_szGUID = #_guid; \
-    const char* g_szName = #_name; \
-    const char* g_szVersion = #_ver; \
-    const char* g_szAuthor = #_author;
-
-#define MYMODCFG(_guid, _name, _ver, _author) MYMOD(_guid, _name, _ver, _author)
-
-#define DECL_HOOKv(_name, ...) void _name(__VA_ARGS__)
-// -----------------------------------------------------
-
-// Now include the game files you actually have
+// CORRECT PATHS
 #include "aml-psdk/game_sa/plugin.h"
-#include "aml-psdk/game_sa/game/CWorld.h"
+#include "aml-psdk/game_sa/engine/World.h"
 #include "aml-psdk/game_sa/entity/Ped.h"
-#include "aml-psdk/game_sa/game/RenderWare.h" // Added for RwFrame
+#include "aml-psdk/renderware/RwMatrix.h"
+#include "aml-psdk/renderware/RwRender.h"
 
 using namespace plugin;
 
-// CONFIG: Name your mod here
+// Instantiate fakes to satisfy linker
+IAMLer* aml = new IAMLer();
+FakeLogger* logger = new FakeLogger();
+
 MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
 
 // --- HELPERS ---
 
-// Helper to find hierarchy manually
+// Manual function to find a bone index (Safest method)
+int GetBoneIndex(RpHAnimHierarchy* hier, int boneID) {
+    if (!hier) return -1;
+    for (int i = 0; i < hier->numNodes; i++) {
+        if (hier->pNodeInfo[i].nodeID == boneID) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 RpHAnimHierarchy* GetHierarchy(RpClump* clump) {
     if (!clump) return nullptr;
     RpHAnimHierarchy* hier = nullptr;
-    
-    // Manual search for the hierarchy
     RpClumpForAllAtomics(clump, [](RpAtomic* atomic, void* data) {
         if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic))) {
             *(RpHAnimHierarchy**)data = RpSkinAtomicGetHAnimHierarchy(atomic);
-            return (RpAtomic*)nullptr; 
+            return (RpAtomic*)nullptr;
         }
         return atomic;
     }, &hier);
-    
     return hier;
 }
 
-// --- MAIN IK LOGIC ---
+// --- LOGIC ---
 
 void ApplyLegIK(CPed* ped) {
     if (!ped->m_pRwClump) return;
 
-    // 1. Get Hierarchy
     RpHAnimHierarchy* hier = GetHierarchy(ped->m_pRwClump);
     if (!hier) return;
 
-    // 2. Bone IDs (2 = L_Thigh, 3 = L_Calf)
-    // Note: We use raw IDs because we can't trust the helper functions exist
-    int thighIdx = RpHAnimIDGetIndex(hier, 2);
-    int calfIdx = RpHAnimIDGetIndex(hier, 3);
+    // Bone IDs: 2=Thigh, 3=Calf
+    int thighIdx = GetBoneIndex(hier, 2);
+    int calfIdx = GetBoneIndex(hier, 3);
 
     if (thighIdx == -1 || calfIdx == -1) return;
 
-    // 3. Get Matrices
     RwMatrix* thighMat = &hier->pNodeInfo[thighIdx].pFrame->modelingMtx;
 
-    // 4. Raycast
     CVector startPos = { thighMat->pos.x, thighMat->pos.y, thighMat->pos.z };
     CVector endPos = startPos;
     endPos.z -= 1.2f;
@@ -85,22 +81,20 @@ void ApplyLegIK(CPed* ped) {
 
             float angleDeg = acos(cosAng) * (180.0f / 3.14159f);
 
-            // 6. Apply Rotation
             RwV3d axis = { 1.0f, 0.0f, 0.0f };
+            // Use standard RW function if available, otherwise manual matrix math would be needed
+            // But RwFrameRotate is usually linked in game_sa libraries
             RwFrameRotate(hier->pNodeInfo[calfIdx].pFrame, &axis, angleDeg, rwCOMBINEPRECONCAT);
             RwFrameUpdateObjects(hier->pNodeInfo[thighIdx].pFrame);
         }
     }
 }
 
-// --- ENTRY POINT ---
-
 extern "C" void OnModLoad() {
-    // Basic hook to run every frame
+    logger->SetTag("LegIK");
+    
     Events::processScriptsEvent += [] {
         CPed* player = FindPlayerPed();
-        if (player) {
-            ApplyLegIK(player);
-        }
+        if (player) ApplyLegIK(player);
     };
 }
