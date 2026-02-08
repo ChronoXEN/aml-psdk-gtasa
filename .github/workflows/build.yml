@@ -19,11 +19,12 @@ jobs:
       run: |
         mkdir -p mod
         
-        # 1. AMLMOD.H
+        # 1. AMLMOD.H (THE FIX IS HERE)
         cat << 'EOF' > mod/amlmod.h
         #pragma once
         #include <cstdint>
         #include <stdio.h>
+        
         class IAMLer { public: 
             void* GetLibHandle(const char*){return 0;} 
             void* GetLib(const char*){return 0;} 
@@ -31,13 +32,22 @@ jobs:
             void  PlaceHK(void* addr, void* func){} 
         };
         extern IAMLer* aml;
-        #define MYMOD(guid, name, version, author) const char* g_szGUID = #guid; const char* g_szName = #name; const char* g_szVersion = #version; const char* g_szAuthor = #author;
+        
+        // FIX: Force these variables to be EXTERN and VISIBLE so AML can find them
+        #define MYMOD(guid, name, version, author) \
+            extern "C" { \
+                __attribute__((visibility("default"))) const char* g_szGUID = #guid; \
+                __attribute__((visibility("default"))) const char* g_szName = #name; \
+                __attribute__((visibility("default"))) const char* g_szVersion = #version; \
+                __attribute__((visibility("default"))) const char* g_szAuthor = #author; \
+            }
+            
         #define MYMODCFG(guid, name, version, author) MYMOD(guid, name, version, author)
         #define DECL_HOOKv(name, ...) void name(__VA_ARGS__)
         #define HOOK(func, addr) aml->PlaceHK(addr, (void*)func)
         EOF
         
-        # 2. LOGGER.H (This was missing!)
+        # 2. LOGGER.H
         cat << 'EOF' > mod/logger.h
         #pragma once
         class FakeLogger { public: void SetTag(const char*){} void Info(const char* ...){} };
@@ -50,7 +60,7 @@ jobs:
         class FakeConfig {};
         EOF
         
-        # 4. CPP IMPLEMENTATIONS
+        # 4. CPP FILES
         cat << 'EOF' > mod/logger.cpp
         #include "logger.h"
         FakeLogger* logger = nullptr;
