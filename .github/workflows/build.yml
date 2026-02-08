@@ -15,11 +15,20 @@ jobs:
       with:
         ndk-version: r25b
 
-    - name: Generate Missing SDK Files
+    - name: Generate Build Configs
       run: |
         mkdir -p mod
         
-        # 1. GENERATE HEADERS
+        # 1. GENERATE Application.mk (The Fix for 'cstdint not found')
+        # This tells the NDK exactly how to link the C++ library.
+        cat << 'EOF' > Application.mk
+        APP_ABI := armeabi-v7a
+        APP_PLATFORM := android-21
+        APP_STL := c++_static
+        APP_CPPFLAGS := -std=c++17 -fexceptions
+        EOF
+
+        # 2. GENERATE HEADERS (Fake SDK)
         cat << 'EOF' > mod/amlmod.h
         #pragma once
         #include <cstdint>
@@ -42,7 +51,7 @@ jobs:
         class FakeConfig {};
         EOF
         
-        # 2. GENERATE DUMMY CPP FILES (To satisfy Android.mk)
+        # 3. GENERATE DUMMY CPP FILES
         cat << 'EOF' > mod/logger.cpp
         #include "amlmod.h"
         EOF
@@ -51,15 +60,12 @@ jobs:
         #include "config.h"
         EOF
 
-    - name: Build with NDK-Build (STATIC LINKING)
+    - name: Build with NDK-Build
       run: |
-        # We override APP_STL to use static libraries. This fixes the "Ghost Mod" issue.
+        # We now point to the Application.mk file we just created
         ndk-build \
           NDK_PROJECT_PATH=. \
-          APP_BUILD_SCRIPT=./Android.mk \
-          APP_PLATFORM=android-21 \
-          APP_ABI=armeabi-v7a \
-          APP_STL=c++_static \
+          NDK_APPLICATION_MK=./Application.mk \
           LOCAL_C_INCLUDES+=.
 
     - name: Upload Mod File
