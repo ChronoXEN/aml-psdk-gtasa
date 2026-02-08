@@ -19,7 +19,7 @@ jobs:
       run: |
         mkdir -p mod
         
-        # 1. GENERATE HEADERS
+        # 1. AMLMOD.H
         cat << 'EOF' > mod/amlmod.h
         #pragma once
         #include <cstdint>
@@ -37,13 +37,23 @@ jobs:
         #define HOOK(func, addr) aml->PlaceHK(addr, (void*)func)
         EOF
         
+        # 2. LOGGER.H (This was missing!)
+        cat << 'EOF' > mod/logger.h
+        #pragma once
+        class FakeLogger { public: void SetTag(const char*){} void Info(const char* ...){} };
+        extern FakeLogger* logger;
+        EOF
+        
+        # 3. CONFIG.H
         cat << 'EOF' > mod/config.h
         #pragma once
         class FakeConfig {};
         EOF
         
+        # 4. CPP IMPLEMENTATIONS
         cat << 'EOF' > mod/logger.cpp
-        #include "amlmod.h"
+        #include "logger.h"
+        FakeLogger* logger = nullptr;
         EOF
         
         cat << 'EOF' > mod/config.cpp
@@ -52,7 +62,6 @@ jobs:
 
     - name: Build with NDK-Build (STATIC + VISIBLE)
       run: |
-        # We add -fvisibility=default to ensure AML can see the functions
         ndk-build \
           NDK_PROJECT_PATH=. \
           APP_BUILD_SCRIPT=./Android.mk \
