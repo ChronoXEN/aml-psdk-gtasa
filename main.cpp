@@ -17,59 +17,55 @@ void (*RwFrameRotate)(RwFrame* frame, RwV3d* axis, float angle, int combine) = n
 void (*RwFrameUpdateObjects)(RwFrame* frame) = nullptr;
 
 // Constants
-#define rwCOMBINEREPLACE 0  // Replaces the animation entirely (Strongest)
-#define rwCOMBINEPRECONCAT 1 // Adds to the animation (Smoother)
+#define rwCOMBINEPRECONCAT 1
 
 IAMLer* aml = new IAMLer();
 FakeLogger* logger = new FakeLogger();
 MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
 
-// --- LEG BENDING LOGIC ---
-void ApplyForceBend(void* pRwClump) {
+// --- FORCE LEAN LOGIC ---
+void ApplyForceLean(void* pRwClump) {
     if (!pRwClump || !GetAnimHierarchyFromSkinClump || !RwFrameRotate) return;
 
     RpHAnimHierarchy* hier = (RpHAnimHierarchy*)GetAnimHierarchyFromSkinClump(pRwClump);
     if (!hier) return;
 
-    // Find Left Calf (ID 3)
-    int calfIdx = -1;
+    // Find ROOT (Bone 0) - This is the Pelvis.
+    // If we rotate this, the WHOLE character should tilt.
+    int rootIdx = -1;
     for(int i=0; i<hier->numNodes; i++) {
-        if(hier->pNodeInfo[i].nodeID == 3) {
-            calfIdx = i;
+        if(hier->pNodeInfo[i].nodeID == 0) { // 0 = Root/Pelvis
+            rootIdx = i;
             break;
         }
     }
 
-    if (calfIdx == -1) return;
+    if (rootIdx == -1) return;
 
-    RwFrame* calfFrame = hier->pNodeInfo[calfIdx].pFrame;
+    RwFrame* rootFrame = hier->pNodeInfo[rootIdx].pFrame;
 
-    // FORCE TEST: Bend leg 90 degrees BACKWARDS
-    RwV3d axis = { 1.0f, 0.0f, 0.0f }; 
-    float angle = 90.0f; 
+    // FORCE LEAN: 45 Degrees sideways
+    RwV3d axis = { 0.0f, 1.0f, 0.0f }; // Y-Axis (Sideways)
+    float angle = 45.0f; 
 
-    // We use REPLACE to make sure the game doesn't overwrite us
-    RwFrameRotate(calfFrame, &axis, angle, rwCOMBINEREPLACE);
+    // Apply Rotation
+    RwFrameRotate(rootFrame, &axis, angle, rwCOMBINEPRECONCAT);
     
-    // Note: We don't update parent here because we want to see if the rotation sticks at all
-    if(RwFrameUpdateObjects) RwFrameUpdateObjects(calfFrame);
+    // Update hierarchy so the legs/arms move with the pelvis
+    if(RwFrameUpdateObjects) RwFrameUpdateObjects(rootFrame);
 }
 
-// --- THE NEW HOOK (Runs during Rendering) ---
-// This function runs exactly when the game draws the Ped.
-// 'self' is the CPed pointer.
-
-DECL_HOOKv(CPed_Render, void* self) {
-    // 1. Run the original game rendering first
-    CPed_Render(self); 
+// --- THE HOOK: CPed::PreRender ---
+// This is the "Sweet Spot" for IK.
+DECL_HOOKv(CPed_PreRender, void* self) {
+    // 1. Run original logic first (calculates animations)
+    CPed_PreRender(self); 
     
-    // 2. NOW we bend the leg. 
-    // Since the game just finished calculating animations, we are modifying the result.
-    // We need to fetch the Clump from the CPed struct.
-    // Offset 0x18 is standard for 'm_pRwClump' in 32-bit GTA SA.
+    // 2. NOW apply our bend before drawing
     if(self) {
+        // Try offset 0x18 (Standard for v2.00/v2.10)
         void* clump = *(void**)((uintptr_t)self + 0x18);
-        ApplyForceBend(clump);
+        if(clump) ApplyForceLean(clump);
     }
 }
 
@@ -83,6 +79,6 @@ extern "C" void OnModLoad() {
     RwFrameRotate = (void(*)(RwFrame*, RwV3d*, float, int))aml->GetSym(hGame, "_Z13RwFrameRotateP7RwFramePK5RwV3d19RwOpCombineType");
     RwFrameUpdateObjects = (void(*)(RwFrame*))aml->GetSym(hGame, "_Z20RwFrameUpdateObjectsP7RwFrame");
 
-    // Hook CPed::Render instead of CTimer::Update
-    HOOK(CPed_Render, aml->GetSym(hGame, "_ZN4CPed6RenderEv"));
+    // Hook PreRender
+    HOOK(CPed_PreRender, aml->GetSym(hGame, "_ZN4CPed9PreRenderEv"));
 }
