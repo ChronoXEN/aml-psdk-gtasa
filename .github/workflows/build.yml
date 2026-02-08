@@ -19,11 +19,15 @@ jobs:
       run: |
         mkdir -p mod
         
-        # Use 'Heredoc' format to avoid YAML syntax errors
+        # FIX 1: Use 'uintptr_t' instead of 'void*' to match SDK expectations
         cat << 'EOF' > mod/amlmod.h
         #pragma once
-        #include <stdint.h>
-        class IAMLer { public: void* GetLibHandle(const char*){return 0;} void* GetLib(const char*){return 0;} void* GetSym(void*, const char*){return 0;} };
+        #include <cstdint>
+        class IAMLer { public: 
+            uintptr_t GetLibHandle(const char*){return 0;} 
+            uintptr_t GetLib(const char*){return 0;} 
+            uintptr_t GetSym(void*, const char*){return 0;} 
+        };
         extern IAMLer* aml;
         #define MYMOD(guid, name, version, author) const char* g_szGUID = #guid; const char* g_szName = #name; const char* g_szVersion = #version; const char* g_szAuthor = #author;
         #define MYMODCFG(guid, name, version, author) MYMOD(guid, name, version, author)
@@ -43,7 +47,8 @@ jobs:
 
     - name: Build with NDK-Build
       run: |
-        ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21 LOCAL_C_INCLUDES+=.
+        # FIX 2: Force APP_ABI=armeabi-v7a (32-bit)
+        ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21 APP_ABI=armeabi-v7a LOCAL_C_INCLUDES+=.
 
     - name: Upload Mod File
       uses: actions/upload-artifact@v4
