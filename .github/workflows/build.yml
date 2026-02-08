@@ -19,11 +19,11 @@ jobs:
       run: |
         mkdir -p mod
         
-        # 1. GENERATE HEADERS (.h)
-        # ------------------------
+        # 1. GENERATE HEADERS
         cat << 'EOF' > mod/amlmod.h
         #pragma once
         #include <cstdint>
+        #include <stdio.h>
         class IAMLer { public: 
             void* GetLibHandle(const char*){return 0;} 
             void* GetLib(const char*){return 0;} 
@@ -37,36 +37,33 @@ jobs:
         #define HOOK(func, addr) aml->PlaceHK(addr, (void*)func)
         EOF
         
-        cat << 'EOF' > mod/logger.h
-        #pragma once
-        class FakeLogger { public: void SetTag(const char*){} void Info(const char* ...){} };
-        extern FakeLogger* logger;
-        EOF
-        
         cat << 'EOF' > mod/config.h
         #pragma once
         class FakeConfig {};
         EOF
-
-        # 2. GENERATE SOURCE FILES (.cpp) - NEW!
-        # --------------------------------------
-        # Android.mk expects these files to exist, so we create empty ones that just include the headers.
         
+        # 2. GENERATE DUMMY CPP FILES (To satisfy Android.mk)
         cat << 'EOF' > mod/logger.cpp
-        #include "logger.h"
+        #include "amlmod.h"
         EOF
         
         cat << 'EOF' > mod/config.cpp
         #include "config.h"
         EOF
 
-    - name: Build with NDK-Build
+    - name: Build with NDK-Build (STATIC LINKING)
       run: |
-        # Force 32-bit build (armeabi-v7a)
-        ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21 APP_ABI=armeabi-v7a LOCAL_C_INCLUDES+=.
+        # We override APP_STL to use static libraries. This fixes the "Ghost Mod" issue.
+        ndk-build \
+          NDK_PROJECT_PATH=. \
+          APP_BUILD_SCRIPT=./Android.mk \
+          APP_PLATFORM=android-21 \
+          APP_ABI=armeabi-v7a \
+          APP_STL=c++_static \
+          LOCAL_C_INCLUDES+=.
 
     - name: Upload Mod File
       uses: actions/upload-artifact@v4
       with:
-        name: LegIK-Mod
-        path: libs/**/*.so
+        name: libLegIK.so
+        path: libs/armeabi-v7a/*.so
