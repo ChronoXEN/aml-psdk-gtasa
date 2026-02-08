@@ -1,108 +1,72 @@
-#include <mod/amlmod.h>
-#include <mod/logger.h>
-#include <mod/config.h>
+// WE USE RELATIVE PATHS BECAUSE YOUR REPO STRUCTURE IS DIFFERENT
+#include "aml-psdk/game_sa/plugin.h"
+#include "aml-psdk/game_sa/game/CWorld.h"
+#include "aml-psdk/game_sa/entity/Ped.h" 
 
-// Include GTA SA Game Classes (AML SDK Structure)
-#include <game_sa/common.h>
-#include <game_sa/CWorld.h>
-#include <game_sa/CPed.h>
-#include <game_sa/Rw/RwHelper.h> // For RwFrame operations
+// Namespace usually provided by the SDK
+using namespace plugin;
 
-// Config for your mod
-MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
+// --- MAIN LOGIC ---
 
-// --- HELPER FUNCTIONS ---
-
-// Helper to get bone matrix
-RwMatrix* GetBoneMatrix(CPed* ped, int boneID) {
-    if(!ped->m_pRwClump) return nullptr;
-    
-    // In AML SDK, RpHAnimHierarchy is usually accessed via RpSkin
-    RpHAnimHierarchy* hier = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
-    if(!hier) return nullptr;
-
-    int idx = RpHAnimIDGetIndex(hier, boneID);
-    if(idx == -1) return nullptr;
-
-    return &hier->pNodeInfo[idx].pFrame->modelingMtx;
-}
-
-// The Main IK Logic
 void ApplyLegIK(CPed* ped) {
-    // 1. Raycast Setup
-    // Bone IDs: 2=L_Thigh, 3=L_Calf, 22=R_Thigh, 23=R_Calf
-    // Let's try Left Leg (Thigh = 2)
-    RwMatrix* thighMat = GetBoneMatrix(ped, 2);
-    
-    if(!thighMat) return;
+    if (!ped->m_pRwClump) return;
 
-    CVector startPos = thighMat->pos;
+    // 1. Get Hierarchy (Using SDK helper if available, or manual)
+    RpHAnimHierarchy* hier = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
+    if (!hier) return;
+
+    // 2. Bone IDs (2 = L_Thigh, 3 = L_Calf)
+    int thighIdx = RpHAnimIDGetIndex(hier, 2);
+    int calfIdx = RpHAnimIDGetIndex(hier, 3);
+
+    if (thighIdx == -1 || calfIdx == -1) return;
+
+    // 3. Get Matrices
+    RwMatrix* thighMat = &hier->pNodeInfo[thighIdx].pFrame->modelingMtx;
+
+    // 4. Raycast
+    CVector startPos = { thighMat->pos.x, thighMat->pos.y, thighMat->pos.z };
     CVector endPos = startPos;
-    endPos.z -= 1.2f; // Raycast down
+    endPos.z -= 1.2f;
 
     CColPoint colPoint;
     CEntity* hitEntity = nullptr;
 
-    // 2. Process Line of Sight (Raycast)
-    if (CWorld::ProcessLineOfSight(&startPos, &endPos, &colPoint, &hitEntity, true, false, false, true, false, false, false, false)) {
-        
+    // 5. The SDK Raycast Function
+    if (CWorld::ProcessLineOfSight(startPos, endPos, colPoint, hitEntity, true, false, false, true, false, false, false, false)) {
         float dist = startPos.z - colPoint.m_vecPoint.z;
-        
-        // 3. Math (Law of Cosines)
         float upper = 0.44f;
         float lower = 0.45f;
-        
-        if(dist < (upper + lower) && dist > 0.2f) {
-            float num = (upper*upper) + (lower*lower) - (dist*dist);
+
+        if (dist < (upper + lower) && dist > 0.2f) {
+            float num = (upper * upper) + (lower * lower) - (dist * dist);
             float denom = 2 * upper * lower;
             float cosAng = num / denom;
 
-            // Clamp
-            if(cosAng > 1.0f) cosAng = 1.0f;
-            if(cosAng < -1.0f) cosAng = -1.0f;
+            if (cosAng > 1.0f) cosAng = 1.0f;
+            if (cosAng < -1.0f) cosAng = -1.0f;
 
             float angleRad = acos(cosAng);
             float angleDeg = angleRad * (180.0f / 3.14159f);
 
-            // 4. Apply Rotation (AML helper might differ, using raw RW if needed)
-            // Note: In AML you might need to manually rotate the matrix if RwFrameRotate isn't exposed directly
-            // But usually, you can access the frame from the hierarchy:
-            
-            RpHAnimHierarchy* hier = GetAnimHierarchyFromSkinClump(ped->m_pRwClump);
-            int calfIdx = RpHAnimIDGetIndex(hier, 3); // Left Calf
-            RwFrame* calfFrame = hier->pNodeInfo[calfIdx].pFrame;
-
-            RwV3d axis = {1.0f, 0.0f, 0.0f};
-            RwFrameRotate(calfFrame, &axis, angleDeg, rwCOMBINEPRECONCAT);
-            
-            // Update
-            RwFrameUpdateObjects(hier->pNodeInfo[RpHAnimIDGetIndex(hier, 2)].pFrame);
+            // 6. Apply Rotation
+            RwV3d axis = { 1.0f, 0.0f, 0.0f };
+            RwFrameRotate(hier->pNodeInfo[calfIdx].pFrame, &axis, angleDeg, rwCOMBINEPRECONCAT);
+            RwFrameUpdateObjects(hier->pNodeInfo[thighIdx].pFrame);
         }
     }
 }
 
-// --- HOOKS ---
+// --- ENTRY POINT ---
+// Since we don't have 'mod/amlmod.h', we use a standard constructor function 
+// that NDK plugins use. The SDK likely calls a function on load.
 
-// Hooking CTimer::Update is the standard way to run code every frame in AML
-DECL_HOOKv(CTimer_Update)
-{
-    CTimer_Update(); // Call original function first
-    
-    // Get Player
-    CPed* player = (CPed*)FindPlayerPed(-1);
-    
-    if(player && player->m_pRwClump) {
-        ApplyLegIK(player);
-    }
-}
-
-// --- MOD ENTRY POINT ---
-ON_MOD_LOAD()
-{
-    logger->SetTag("LegIK");
-    logger->Info("LegIK Mod Loaded!");
-
-    // Install the hook
-    HOOK(CTimer_Update, aml->GetSym(NULL, "_ZN6CTimer6UpdateEv")); 
-    // Note: "_ZN6CTimer6UpdateEv" is the symbol for CTimer::Update in the Android lib
+extern "C" void OnModLoad() {
+    // This connects our logic to the game timer
+    Events::processScriptsEvent += [] {
+        CPed* player = FindPlayerPed();
+        if (player) {
+            ApplyLegIK(player);
+        }
+    };
 }
