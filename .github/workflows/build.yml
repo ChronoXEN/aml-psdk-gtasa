@@ -19,8 +19,7 @@ jobs:
       run: |
         mkdir -p mod
         
-        # 1. GENERATE Application.mk (The Fix for 'cstdint not found')
-        # This tells the NDK exactly how to link the C++ library.
+        # 1. GENERATE Application.mk (Fixes 'cstdint not found')
         cat << 'EOF' > Application.mk
         APP_ABI := armeabi-v7a
         APP_PLATFORM := android-21
@@ -62,10 +61,11 @@ jobs:
 
     - name: Build with NDK-Build
       run: |
-        # We now point to the Application.mk file we just created
+        # THE FIX: We explicitly point to Android.mk using APP_BUILD_SCRIPT
         ndk-build \
           NDK_PROJECT_PATH=. \
           NDK_APPLICATION_MK=./Application.mk \
+          APP_BUILD_SCRIPT=./Android.mk \
           LOCAL_C_INCLUDES+=.
 
     - name: Upload Mod File
