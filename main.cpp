@@ -4,51 +4,82 @@
 #include <jni.h>
 #include <math.h>
 
-// --- 1. DEFINITIONS ---
+// --- STRUCTURES ---
 struct RwV3d { float x, y, z; };
 struct RwMatrix { RwV3d right; uint32_t flags; RwV3d up; uint32_t pad1; RwV3d at; uint32_t pad2; RwV3d pos; uint32_t pad3; };
 struct RwFrame { RwMatrix modelingMtx; void* parent; void* next; void* root; };
 
-// --- 2. THE MAGICAL FUNCTION YOU FOUND ---
-// _Z24RpAnimBlendClumpFindBoneP7RpClumpj -> RpAnimBlendClumpFindBone(RpClump*, uint)
+// The Wrapper you get from RpAnimBlendClumpFindBone
+struct AnimBlendFrameData {
+    uint32_t flags;
+    RwV3d    vecOffset;
+    RwFrame* pFrame; // <--- THIS is what we want. Usually at offset 0x10 or 0x14.
+};
+
+// --- SYMBOLS ---
+// RpAnimBlendClumpFindBone(RpClump*, uint)
 void* (*RpAnimBlendClumpFindBone)(void* clump, unsigned int boneID) = nullptr;
 
-// Helper to rotate
-void (*RwFrameRotate)(RwFrame* frame, RwV3d* axis, float angle, int combine) = nullptr;
-void (*RwFrameUpdateObjects)(RwFrame* frame) = nullptr;
-
-// Constants
-#define rwCOMBINEREPLACE 0 
-#define rwCOMBINEPRECONCAT 1
+// We don't need RwFrameRotate anymore. We will do the math ourselves.
 
 IAMLer* aml = new IAMLer();
 FakeLogger* logger = new FakeLogger();
 MYMODCFG(net.rusjj.legik, LegIK Mod, 1.0, YourName)
 
+// --- MANUAL ROTATION MATH ---
+// Rotates a matrix on the X-axis (Pitch) by 'angle' degrees
+void RotateMatrixX(RwMatrix* mtx, float angle) {
+    float rad = angle * (3.14159f / 180.0f);
+    float c = cosf(rad);
+    float s = sinf(rad);
 
-// --- 3. THE LOGIC ---
+    // GTA Matrices: Up = Y, At = Z.
+    // Rotate Up and At around Right (X)
+    RwV3d oldUp = mtx->up;
+    RwV3d oldAt = mtx->at;
+
+    mtx->up.y = oldUp.y * c - oldUp.z * s;
+    mtx->up.z = oldUp.y * s + oldUp.z * c;
+
+    mtx->at.y = oldAt.y * c - oldAt.z * s;
+    mtx->at.z = oldAt.y * s + oldAt.z * c;
+    
+    // Dirty flag (0x2) tells the game "Recalculate this bone"
+    // We just OR it in to be safe.
+    mtx->flags |= 0x2; 
+}
+
+// --- LOGIC ---
 
 void ApplyBoneBend(void* clump) {
-    if(!clump || !RpAnimBlendClumpFindBone || !RwFrameRotate) return;
+    if(!clump || !RpAnimBlendClumpFindBone) return;
 
-    // USE YOUR FUNCTION TO FIND BONE 3 (Left Calf)
-    // 3 = BONE_L_CALF in GTA SA
-    void* bonePtr = RpAnimBlendClumpFindBone(clump, 3);
+    // 1. Get the Wrapper (AnimBlendFrameData)
+    // Bone 3 = Left Calf
+    void* wrapper = RpAnimBlendClumpFindBone(clump, 3);
     
-    if(!bonePtr) return;
+    if(!wrapper) return;
 
-    // Cast it to RwFrame (Standard RenderWare structure)
-    RwFrame* calfFrame = (RwFrame*)bonePtr;
-
-    // FORCE TEST: 90 Degrees Backward
-    RwV3d axis = { 1.0f, 0.0f, 0.0f }; // X-Axis
-    float angle = 90.0f;
-
-    // Apply Rotation
-    RwFrameRotate(calfFrame, &axis, angle, rwCOMBINEREPLACE);
+    // 2. Extract the Real Bone (RwFrame)
+    // In GTA SA Android, the RwFrame* is usually at offset 0x10 or 0x14 of the wrapper.
+    // Let's try 0x10 first (Standard for 32-bit).
+    // wrapper + 16 bytes = pFrame?
     
-    // Update Physics/Children
-    if(RwFrameUpdateObjects) RwFrameUpdateObjects(calfFrame);
+    RwFrame* frame = *(RwFrame**)((uintptr_t)wrapper + 0x10);
+    
+    // Safety check: Does it look like a valid pointer?
+    if((uintptr_t)frame < 0x10000) {
+        // Try offset 0x14 just in case
+        frame = *(RwFrame**)((uintptr_t)wrapper + 0x14);
+    }
+
+    if(!frame) return;
+
+    // 3. FORCE TEST: 90 Degrees
+    RotateMatrixX(&frame->modelingMtx, 90.0f);
+    
+    // Note: We don't call RwFrameUpdateObjects. 
+    // Since we hooked PreRender, the game will update the children automatically when it draws.
 }
 
 // Hook CPed::PreRender
@@ -66,13 +97,9 @@ extern "C" void OnModLoad() {
     logger->SetTag("LegIK");
     void* hGame = aml->GetLibHandle("libGTASA.so");
     
-    // 4. LOAD YOUR SYMBOL
+    // Load YOUR symbol
     RpAnimBlendClumpFindBone = (void*(*)(void*, unsigned int))aml->GetSym(hGame, "_Z24RpAnimBlendClumpFindBoneP7RpClumpj");
     
-    // Load Helpers
-    RwFrameRotate = (void(*)(RwFrame*, RwV3d*, float, int))aml->GetSym(hGame, "_Z13RwFrameRotateP7RwFramePK5RwV3d19RwOpCombineType");
-    RwFrameUpdateObjects = (void(*)(RwFrame*))aml->GetSym(hGame, "_Z20RwFrameUpdateObjectsP7RwFrame");
-
     // Hook
     HOOK(CPed_PreRender, aml->GetSym(hGame, "_ZN4CPed9PreRenderEv"));
 }
