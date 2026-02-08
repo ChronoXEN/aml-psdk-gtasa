@@ -9,41 +9,19 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-      with:
-        submodules: recursive
 
     - name: Setup Android NDK
       uses: nttld/setup-ndk@v1
       with:
         ndk-version: r25b
 
-    - name: Build with CMake
+    - name: Build with NDK-Build
       run: |
-        # 1. Debug: List files so we can see where they are
-        echo "Listing root directory:"
-        ls -R
-
-        # 2. Smart Fix: Enter the subfolder if it exists
-        if [ -d "aml-psdk-gtasa-main" ]; then
-          cd aml-psdk-gtasa-main
-          echo "Entered subfolder: aml-psdk-gtasa-main"
-        elif [ -d "aml-psdk-gtasa" ]; then
-          cd aml-psdk-gtasa
-          echo "Entered subfolder: aml-psdk-gtasa"
-        fi
-
-        # 3. Now run the build commands
-        mkdir build
-        cd build
-        cmake -DANDROID_ABI=armeabi-v7a -DANDROID_PLATFORM=android-21 -DANDROID_NDK=$ANDROID_NDK_HOME -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake ..
-        make
+        # This command uses the Android.mk file found in your root folder
+        ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21
 
     - name: Upload Mod File
       uses: actions/upload-artifact@v4
       with:
-        name: LegIK-Mod
-        # We need to use a wildcard because we don't know if it's inside the subfolder or not
-        path: |
-          build/*.so
-          */build/*.so
-        compression-level: 0
+        name: LegIK.so
+        path: libs/**/*.so # NDK-Build puts files in 'libs', not 'build'
