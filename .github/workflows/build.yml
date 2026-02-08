@@ -15,13 +15,33 @@ jobs:
       with:
         ndk-version: r25b
 
+    - name: Generate Missing SDK Files
+      run: |
+        # 1. Create the missing 'mod' folder
+        mkdir -p mod
+
+        # 2. Create a dummy 'amlmod.h' (The file you were missing)
+        echo '#pragma once' > mod/amlmod.h
+        echo '#define MYMOD(guid, name, version, author) const char* g_szGUID = #guid; const char* g_szName = #name; const char* g_szVersion = #version; const char* g_szAuthor = #author;' >> mod/amlmod.h
+        echo '#define MYMODCFG(guid, name, version, author) MYMOD(guid, name, version, author)' >> mod/amlmod.h
+        echo '#define DECL_HOOKv(name, ...) void name(__VA_ARGS__)' >> mod/amlmod.h
+        
+        # 3. Create a dummy 'logger.h' so we can use logging
+        echo '#pragma once' > mod/logger.h
+        echo 'class FakeLogger { public: void SetTag(const char*){} void Info(const char* ...){} };' >> mod/logger.h
+        echo 'static FakeLogger* logger = new FakeLogger();' >> mod/logger.h
+
+        # 4. Create a dummy 'config.h'
+        echo '#pragma once' > mod/config.h
+        echo 'class FakeConfig {};' >> mod/config.h
+
     - name: Build with NDK-Build
       run: |
-        # This command uses the Android.mk file found in your root folder
-        ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21
+        # We tell the compiler to look in the current folder (.) for the new 'mod' files
+        ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk APP_PLATFORM=android-21 LOCAL_C_INCLUDES+=.
 
     - name: Upload Mod File
       uses: actions/upload-artifact@v4
       with:
-        name: LegIK.so
-        path: libs/**/*.so # NDK-Build puts files in 'libs', not 'build'
+        name: LegIK-Mod
+        path: libs/**/*.so
