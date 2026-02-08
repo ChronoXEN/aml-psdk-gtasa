@@ -1,21 +1,21 @@
 name: Build Android Mod
 
-on: [push] # Runs every time you save a file
+on: [push, workflow_dispatch] # Runs on save or manual click
 
 jobs:
   build:
-    runs-on: ubuntu-latest # Uses GitHub's Linux computer
+    runs-on: ubuntu-latest
     
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4  # Updated from v3 to v4
       with:
-        submodules: recursive # Grabs the AML SDK automatically
+        submodules: recursive
 
     - name: Setup Android NDK
       uses: nttld/setup-ndk@v1
       with:
-        ndk-version: r25b # The version AML likes
+        ndk-version: r25b
 
     - name: Build with CMake
       run: |
@@ -25,7 +25,8 @@ jobs:
         make
 
     - name: Upload Mod File
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # FIXED: Updated to v4
       with:
-        name: LegIK.so
-        path: build/*.so # Uploads the finished file for you
+        name: LegIK-Mod
+        path: build/*.so
+        compression-level: 0 # Optional: Makes upload faster since .so files are small
